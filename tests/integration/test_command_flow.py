@@ -49,8 +49,8 @@ class TestCommandMessageFlow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("queries.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch("main.send_message", new_callable=AsyncMock) as mock_send:
 
             await bot.on_message(room, event)
@@ -82,8 +82,8 @@ class TestCommandMessageFlow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("queries.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch("main.send_message", new_callable=AsyncMock) as mock_send:
 
             await bot.on_message(room, event)
@@ -114,8 +114,8 @@ class TestCommandMessageFlow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("queries.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch.object(Config, "get_summary_client", return_value=mock_llm_client), \
              patch("main.send_message", new_callable=AsyncMock) as mock_send:
 
@@ -151,8 +151,8 @@ class TestCommandMessageFlow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("router.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch.object(Config, "get_classify_client", return_value=mock_llm_client), \
              patch("main.get_record", return_value={"title": "Test"}), \
              patch("main.send_confirmation", new_callable=AsyncMock):
@@ -184,8 +184,8 @@ class TestCommandMessageFlow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("queries.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch("main.send_message", new_callable=AsyncMock) as mock_send:
 
             await bot.on_message(room, event)
@@ -215,8 +215,8 @@ class TestCommandMessageFlow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("queries.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch("main.send_message", new_callable=AsyncMock) as mock_send:
 
             await bot.on_message(room, event)
@@ -257,8 +257,8 @@ class TestMatrixMessageParsing:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("queries.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch("main.send_message", new_callable=AsyncMock) as mock_send:
 
             await bot.on_message(room, event)
@@ -294,8 +294,8 @@ class TestMatrixMessageParsing:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("queries.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch("main.send_message", new_callable=AsyncMock) as mock_send:
 
             await bot.on_message(room, event)

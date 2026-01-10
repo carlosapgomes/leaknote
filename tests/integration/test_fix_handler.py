@@ -39,7 +39,7 @@ class TestFixCommandWorkflow:
         # Mock delete
         conn.execute.return_value = "DELETE 1"
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool), patch.object(
+        with patch("db.get_pool", return_value=mock_db_pool), patch.object(
             Config, "get_classify_client", return_value=mock_llm_client
         ):
             success, msg, old_category, extracted_name = await handle_fix(
@@ -73,7 +73,7 @@ class TestFixCommandWorkflow:
         conn.fetchval.return_value = "new-record-456"
         conn.execute.return_value = "DELETE 1"
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool), patch.object(
+        with patch("db.get_pool", return_value=mock_db_pool), patch.object(
             Config, "get_classify_client", return_value=mock_llm_client
         ):
             success, msg, old_category, extracted_name = await handle_fix(
@@ -103,7 +103,7 @@ class TestFixCommandWorkflow:
         conn.fetchval.return_value = "new-record-456"
         conn.execute.return_value = "DELETE 1"
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             success, msg, old_category, extracted_name = await handle_fix(
                 original_event_id="$test_event_125",
                 new_category="decisions",
@@ -131,7 +131,7 @@ class TestFixCommandWorkflow:
         conn.fetchval.return_value = "new-record-456"
         conn.execute.return_value = "DELETE 1"
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             success, msg, old_category, extracted_name = await handle_fix(
                 original_event_id="$test_event_126",
                 new_category="howtos",
@@ -159,7 +159,7 @@ class TestFixCommandWorkflow:
         conn.fetchval.return_value = "new-record-456"
         conn.execute.return_value = "DELETE 1"
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             success, msg, old_category, extracted_name = await handle_fix(
                 original_event_id="$test_event_127",
                 new_category="snippets",
@@ -185,7 +185,7 @@ class TestFixCommandWorkflow:
         conn = await mock_db_pool.acquire().__aenter__()
         conn.fetchrow.return_value = inbox_log
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             success, msg, old_category, extracted_name = await handle_fix(
                 original_event_id="$test_event_128",
                 new_category="ideas",
@@ -204,7 +204,7 @@ class TestFixCommandWorkflow:
         conn = await mock_db_pool.acquire().__aenter__()
         conn.fetchrow.return_value = None
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             success, msg, old_category, extracted_name = await handle_fix(
                 original_event_id="$nonexistent_event",
                 new_category="projects",
@@ -235,7 +235,7 @@ class TestFixCommandWorkflow:
         conn.fetchval.return_value = "new-record-456"
         conn.execute.return_value = "DELETE 1"
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool), patch.object(
+        with patch("db.get_pool", return_value=mock_db_pool), patch.object(
             Config, "get_classify_client", return_value=mock_llm_client
         ):
             success, msg, old_category, extracted_name = await handle_fix(
@@ -267,7 +267,7 @@ class TestFixCommandWorkflow:
         conn.fetchval.return_value = "new-record-456"
         conn.execute.return_value = "UPDATE 1"
 
-        with patch("fix_handler.get_pool", return_value=mock_db_pool), patch.object(
+        with patch("db.get_pool", return_value=mock_db_pool), patch.object(
             Config, "get_classify_client", return_value=mock_llm_client
         ):
             success, msg, old_category, extracted_name = await handle_fix(

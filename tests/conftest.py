@@ -27,10 +27,9 @@ def mock_llm_client():
     """Mock LLM client for testing classification."""
     client = AsyncMock()
 
-    async def mock_complete_json(prompt, temperature=1.0, max_tokens=500):
-        """Mock JSON completion that returns a valid classification."""
-        # Default classification result
-        return {
+    # Create AsyncMocks for complete and complete_json methods
+    client.complete_json = AsyncMock(
+        return_value={
             "category": "ideas",
             "confidence": 0.8,
             "extracted": {
@@ -40,31 +39,29 @@ def mock_llm_client():
             },
             "tags": ["test"],
         }
-
-    async def mock_complete(prompt, temperature=0.5, max_tokens=500):
-        """Mock text completion."""
-        return MagicMock(content="Test response")
-
-    client.complete_json = mock_complete_json
-    client.complete = mock_complete
+    )
+    client.complete = AsyncMock(return_value=MagicMock(content="Test response"))
     return client
 
 
 @pytest.fixture
 def mock_db_pool():
     """Mock database pool for testing."""
-    pool = AsyncMock()
+    pool = MagicMock()
     conn = AsyncMock()
 
-    # Mock connection context manager
-    pool.acquire.return_value.__aenter__.return_value = conn
-    pool.acquire.return_value.__aexit__.return_value = None
+    # Properly mock async context manager
+    mock_context = AsyncMock()
+    mock_context.__aenter__ = AsyncMock(return_value=conn)
+    mock_context.__aexit__ = AsyncMock(return_value=None)
+
+    pool.acquire = MagicMock(return_value=mock_context)
 
     # Default mock behaviors
-    conn.fetchval.return_value = "test-id-123"
-    conn.fetchrow.return_value = None
-    conn.fetch.return_value = []
-    conn.execute.return_value = "INSERT 1"
+    conn.fetchval = AsyncMock(return_value="test-id-123")
+    conn.fetchrow = AsyncMock(return_value=None)
+    conn.fetch = AsyncMock(return_value=[])
+    conn.execute = AsyncMock(return_value="INSERT 1")
 
     return pool
 

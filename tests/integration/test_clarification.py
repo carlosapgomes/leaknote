@@ -55,8 +55,8 @@ class TestClarificationWorkflow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("router.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch.object(Config, "get_classify_client", return_value=mock_llm_client), \
              patch("main.get_pending_by_reply_to", return_value=sample_pending_clarification), \
              patch("main.delete_pending_clarification", return_value=True):
@@ -105,7 +105,7 @@ class TestClarificationWorkflow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
              patch("main.get_pending_by_reply_to", return_value=sample_pending_clarification), \
              patch("main.delete_pending_clarification", return_value=True):
 
@@ -159,8 +159,8 @@ class TestClarificationWorkflow:
         room = MagicMock()
         room.room_id = "!test:localhost"
 
-        with patch("main.get_pool", return_value=mock_db_pool), \
-             patch("router.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
+             patch("db.get_pool", return_value=mock_db_pool), \
              patch.object(Config, "get_classify_client", return_value=mock_llm_client), \
              patch("main.get_pending_by_reply_to", return_value=sample_pending_clarification), \
              patch("main.delete_pending_clarification", return_value=True), \
@@ -230,7 +230,7 @@ class TestClarificationWorkflow:
         conn = await mock_db_pool.acquire().__aenter__()
         conn.fetchval.return_value = "inbox-log-123"
 
-        with patch("router.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
              patch.object(Config, "get_classify_client", return_value=mock_llm_client):
 
             category, record_id, confidence, status = await route_message(
@@ -256,7 +256,7 @@ class TestClarificationWorkflow:
         conn = await mock_db_pool.acquire().__aenter__()
         conn.fetchval.return_value = "record-123"
 
-        with patch("router.get_pool", return_value=mock_db_pool), \
+        with patch("db.get_pool", return_value=mock_db_pool), \
              patch.object(Config, "get_classify_client", return_value=mock_llm_client):
 
             category, record_id, confidence, status = await route_message(

@@ -18,7 +18,7 @@ class TestMessageRouting:
         """Test routing a message with idea: prefix."""
         from router import route_message
 
-        with patch("router.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="idea: Build automated test suite",
                 matrix_event_id="$test_event_123",
@@ -39,7 +39,7 @@ class TestMessageRouting:
         """Test routing a message with project: prefix."""
         from router import route_message
 
-        with patch("router.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="project: Test automation framework",
                 matrix_event_id="$test_event_124",
@@ -56,7 +56,7 @@ class TestMessageRouting:
         """Test routing a message with person: prefix."""
         from router import route_message
 
-        with patch("router.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="person: John Doe - engineer at Acme",
                 matrix_event_id="$test_event_125",
@@ -73,7 +73,7 @@ class TestMessageRouting:
         """Test routing a message with howto: prefix."""
         from router import route_message
 
-        with patch("router.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="howto: Deploy → docker build && docker push",
                 matrix_event_id="$test_event_126",
@@ -90,7 +90,7 @@ class TestMessageRouting:
         """Test routing a message with snippet: prefix."""
         from router import route_message
 
-        with patch("router.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="snippet: Git rebase → git rebase -i HEAD~3",
                 matrix_event_id="$test_event_127",
@@ -107,7 +107,7 @@ class TestMessageRouting:
         """Test routing a message with decision: prefix."""
         from router import route_message
 
-        with patch("router.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="decision: Use pytest because it has great async support",
                 matrix_event_id="$test_event_128",
@@ -124,7 +124,7 @@ class TestMessageRouting:
         """Test routing a message with admin: prefix."""
         from router import route_message
 
-        with patch("router.get_pool", return_value=mock_db_pool):
+        with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="admin: File taxes by April 15",
                 matrix_event_id="$test_event_129",
@@ -147,7 +147,7 @@ class TestMessageRouting:
         # Mock high-confidence classification
         mock_llm_client.complete_json = AsyncMock(return_value=sample_classification)
 
-        with patch("router.get_pool", return_value=mock_db_pool), patch.object(
+        with patch("db.get_pool", return_value=mock_db_pool), patch.object(
             Config, "get_classify_client", return_value=mock_llm_client
         ):
             category, record_id, confidence, status = await route_message(
@@ -182,7 +182,7 @@ class TestMessageRouting:
         }
         mock_llm_client.complete_json = AsyncMock(return_value=low_confidence_result)
 
-        with patch("router.get_pool", return_value=mock_db_pool), patch.object(
+        with patch("db.get_pool", return_value=mock_db_pool), patch.object(
             Config, "get_classify_client", return_value=mock_llm_client
         ):
             category, record_id, confidence, status = await route_message(
@@ -207,7 +207,7 @@ class TestMessageRouting:
             side_effect=Exception("API error")
         )
 
-        with patch("router.get_pool", return_value=mock_db_pool), patch.object(
+        with patch("db.get_pool", return_value=mock_db_pool), patch.object(
             Config, "get_classify_client", return_value=mock_llm_client
         ):
             category, record_id, confidence, status = await route_message(
@@ -238,7 +238,7 @@ class TestMessageRouting:
         }
         mock_llm_client.complete_json = AsyncMock(return_value=unknown_category_result)
 
-        with patch("router.get_pool", return_value=mock_db_pool), patch.object(
+        with patch("db.get_pool", return_value=mock_db_pool), patch.object(
             Config, "get_classify_client", return_value=mock_llm_client
         ):
             category, record_id, confidence, status = await route_message(
