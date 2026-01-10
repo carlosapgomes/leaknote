@@ -4,7 +4,7 @@ import re
 from typing import Optional, Tuple, List, Dict, Any
 from pathlib import Path
 
-from config import Config
+from bot.config import Config
 from queries import (
     search_references,
     search_all,
@@ -66,6 +66,10 @@ def parse_command(text: str) -> Optional[Tuple[str, Optional[str]]]:
     return None
 
 
+# Reference tables that should return full content without summarization
+REFERENCE_TABLES = {"decisions", "howtos", "snippets"}
+
+
 async def format_search_results(
     query: str,
     results: List[Dict[str, Any]],
@@ -75,6 +79,13 @@ async def format_search_results(
 
     if not results:
         return f"🔍 No results found for: {query}"
+
+    # Check if all results are from reference categories (no summarization)
+    all_references = all(r.get("source_table") in REFERENCE_TABLES for r in results)
+
+    if all_references:
+        # Return full content with fenced markdown formatting
+        return _format_reference_results(query, results)
 
     # Format results for LLM
     results_text = []
@@ -125,6 +136,36 @@ async def format_search_results(
     except Exception:
         # Fallback to simple formatting
         return f"🔍 Results for: {query}\n\n" + "\n\n".join(results_text)
+
+
+def _format_reference_results(query: str, results: List[Dict[str, Any]]) -> str:
+    """Format reference results with full content and fenced markdown."""
+    lines = [f"🔍 Results for: {query}\n"]
+
+    for r in results:
+        source = r.get("source_table", "unknown")
+
+        if source == "decisions":
+            lines.append(f"## [DECISION] {r['title']}\n")
+            lines.append(f"**Decision:** {r['decision']}")
+            if r.get('rationale'):
+                lines.append(f"**Rationale:** {r['rationale']}")
+            if r.get('context'):
+                lines.append(f"**Context:** {r['context']}")
+
+        elif source == "howtos":
+            lines.append(f"## [HOWTO] {r['title']}\n")
+            lines.append(r['content'])
+
+        elif source == "snippets":
+            lines.append(f"## [SNIPPET] {r['title']}\n")
+            lines.append("```")
+            lines.append(r['content'])
+            lines.append("```")
+
+        lines.append("")  # Blank line between results
+
+    return "\n".join(lines)
 
 
 def format_project_list(projects: List[Dict[str, Any]]) -> str:
