@@ -102,20 +102,37 @@ async def handle_fix(
         else:
             return False, "Couldn't parse as reference", None, None
     else:
-        # Dynamic category - re-classify with LLM
-        try:
-            classification = await classify_thought(raw_text)
-            extracted = classification.get("extracted", {})
-            tags = classification.get("tags", [])
-            if tags:
-                extracted["tags"] = tags
+        # Dynamic category - use prefix-based extraction for the target category
+        # Map table names to their prefixes
+        prefix_map = {
+            "people": "person:",
+            "projects": "project:",
+            "ideas": "idea:",
+            "admin": "admin:",
+        }
+
+        prefix = prefix_map.get(new_category, "")
+        prefixed_text = f"{prefix} {raw_text}"
+
+        ref_result = parse_reference(prefixed_text)
+
+        if ref_result:
+            extracted = ref_result["extracted"]
+            # Get tags from the original classification if available
+            try:
+                original_classification = await classify_thought(raw_text)
+                tags = original_classification.get("tags", [])
+                if tags:
+                    extracted["tags"] = tags
+            except Exception:
+                pass  # Tags are optional, continue without them
 
             new_record_id = await insert_record(new_category, extracted)
             extracted_name = (
                 extracted.get("name") or extracted.get("title") or raw_text[:50]
             )
-        except Exception as e:
-            return False, f"Classification failed: {str(e)}", None, None
+        else:
+            return False, f"Couldn't extract data for category '{new_category}'", None, None
 
     # Update inbox log
     await update_inbox_log(

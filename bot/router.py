@@ -1,10 +1,13 @@
 """Message routing logic."""
 
+import logging
 from typing import Tuple, Optional
 
 from classifier import classify_thought, parse_reference
 from db import insert_record, insert_inbox_log
 from config import Config
+
+logger = logging.getLogger(__name__)
 
 
 # Map categories to table names
@@ -70,6 +73,7 @@ async def route_message(
         classification = await classify_thought(text)
     except Exception as e:
         # LLM failed - log for review
+        logger.error(f"Classification failed for text '{text[:50]}...': {e}")
         await insert_inbox_log(
             raw_text=text,
             destination=None,
@@ -85,6 +89,8 @@ async def route_message(
     confidence = classification.get("confidence", 0.0)
     extracted = classification.get("extracted", {})
     tags = classification.get("tags", [])
+
+    logger.info(f"Classification: category={category}, confidence={confidence}, threshold={Config.get_threshold(category) if category else Config.CONFIDENCE_THRESHOLD}")
 
     # Add tags to extracted data
     if tags:

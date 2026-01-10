@@ -16,9 +16,12 @@ Works with:
 
 import asyncio
 import httpx
+import logging
 from typing import Optional
 
 from . import LLMClient, LLMResponse
+
+logger = logging.getLogger(__name__)
 
 
 # Retry settings
@@ -81,12 +84,33 @@ class OpenAIAdapter(LLMClient):
         messages.append({"role": "user", "content": prompt})
 
         # Build request body
+        # GPT-5+ models use max_completion_tokens, older models use max_tokens
         body = {
             "model": self.model,
             "messages": messages,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
         }
+
+        # Check if this is a GPT-5 or o-series model
+        is_gpt5_or_o_model = (
+            self.model.startswith("gpt-5") or
+            self.model.startswith("o1") or
+            self.model.startswith("o3")
+        )
+
+        # GPT-5 and o-series models have restrictions:
+        # - Use max_completion_tokens instead of max_tokens
+        # - Only support temperature=1 (default), so omit the parameter
+        if is_gpt5_or_o_model:
+            body["max_completion_tokens"] = max_tokens
+            # Only set temperature if it's 1 (the default)
+            if temperature != 1.0:
+                logger.warning(
+                    f"Model {self.model} only supports temperature=1. "
+                    f"Requested temperature {temperature} will be ignored."
+                )
+        else:
+            body["max_tokens"] = max_tokens
+            body["temperature"] = temperature
 
         last_error = None
 
@@ -125,13 +149,22 @@ class OpenAIAdapter(LLMClient):
                     await asyncio.sleep(RETRY_DELAY * (attempt + 1))
 
             except httpx.HTTPStatusError as e:
+                # Log the error details for debugging
+                error_body = None
+                try:
+                    error_body = e.response.json()
+                except Exception:
+                    error_body = e.response.text
+
+                logger.error(f"HTTP Error {e.response.status_code}: {error_body}")
+
                 # Retry on server errors, raise on client errors
                 if e.response.status_code >= 500:
                     last_error = e
                     if attempt < MAX_RETRIES - 1:
                         await asyncio.sleep(RETRY_DELAY * (attempt + 1))
                 else:
-                    raise
+                    raise Exception(f"API Error {e.response.status_code}: {error_body}") from e
 
             except Exception as e:
                 last_error = e

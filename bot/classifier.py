@@ -30,15 +30,20 @@ async def classify_thought(text: str) -> dict:
     - extracted: dict of extracted fields
     - tags: list of tags
     """
+    import logging
+    logger = logging.getLogger(__name__)
+
     client = Config.get_classify_client()
 
     # Use complete_json for structured output
+    # Note: GPT-5 only supports temperature=1
     result = await client.complete_json(
         prompt=CLASSIFICATION_PROMPT + text,
-        temperature=0.1,  # Low for consistent classification
+        temperature=1.0,
         max_tokens=500,
     )
 
+    logger.info(f"Classification result: {result}")
     return result
 
 
@@ -50,7 +55,52 @@ def parse_reference(text: str) -> Optional[dict]:
     """
     text_lower = text.lower().strip()
 
-    if text_lower.startswith("decision:"):
+    if text_lower.startswith("idea:"):
+        content = text[5:].strip()
+        return {
+            "category": "ideas",
+            "extracted": {
+                "title": content[:100],
+                "one_liner": content[:200],
+                "elaboration": content,
+            },
+        }
+
+    elif text_lower.startswith("person:"):
+        content = text[7:].strip()
+        return {
+            "category": "people",
+            "extracted": {
+                "name": content[:100],
+                "context": content,
+                "follow_ups": None,
+            },
+        }
+
+    elif text_lower.startswith("project:"):
+        content = text[8:].strip()
+        return {
+            "category": "projects",
+            "extracted": {
+                "name": content[:100],
+                "status": "active",
+                "next_action": content,
+                "notes": content,
+            },
+        }
+
+    elif text_lower.startswith("admin:"):
+        content = text[6:].strip()
+        return {
+            "category": "admin",
+            "extracted": {
+                "name": content[:100],
+                "due_date": None,
+                "notes": content,
+            },
+        }
+
+    elif text_lower.startswith("decision:"):
         content = text[9:].strip()
         # Try to split on "because" for rationale
         if " because " in content.lower():

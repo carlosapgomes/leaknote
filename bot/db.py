@@ -2,6 +2,7 @@
 
 import asyncpg
 from typing import Optional, Dict, Any, List
+from datetime import date, datetime
 from config import Config
 
 _pool: Optional[asyncpg.Pool] = None
@@ -43,9 +44,22 @@ async def insert_record(table: str, data: dict) -> str:
     """Insert a record and return its ID."""
     pool = await get_pool()
 
-    columns = ", ".join(data.keys())
-    placeholders = ", ".join(f"${i+1}" for i in range(len(data)))
-    values = list(data.values())
+    # Convert date strings to date objects
+    converted_data = {}
+    for key, value in data.items():
+        if key in ("due_date", "last_touched") and isinstance(value, str):
+            # Parse ISO date string to date object
+            try:
+                converted_data[key] = datetime.fromisoformat(value).date()
+            except (ValueError, AttributeError):
+                # If parsing fails, skip this field
+                continue
+        else:
+            converted_data[key] = value
+
+    columns = ", ".join(converted_data.keys())
+    placeholders = ", ".join(f"${i+1}" for i in range(len(converted_data)))
+    values = list(converted_data.values())
 
     query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders}) RETURNING id"
 
