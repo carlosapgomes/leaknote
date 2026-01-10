@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # ===================
+  # PostgreSQL - shared by Dendrite and Second Brain
+  # ===================
+  postgres:
+    image: postgres:16-alpine
+    container_name: secondbrain-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+      - ./schema.sql:/docker-entrypoint-initdb.d/02-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - secondbrain-net
+
+  # ===================
+  # Dendrite Matrix Server
+  # ===================
+  dendrite:
+    image: matrixdotorg/dendrite-monolith:latest
+    container_name: dendrite-matrix
+    hostname: dendrite
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      # Client-Server API (for Element, bot, etc.)
+      - "8008:8008"
+      # Server-Server API (federation) - only expose if you want federation
+      - "8448:8448"
+    volumes:
+      - ./dendrite/config:/etc/dendrite
+      - ./dendrite/media:/var/dendrite/media
+      - ./dendrite/jetstream:/var/dendrite/jetstream
+      - ./dendrite/searchindex:/var/dendrite/searchindex
+    networks:
+      - secondbrain-net
+
+  # ===================
+  # Second Brain Bot
+  # ===================
+  secondbrain:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: secondbrain-bot
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dendrite:
+        condition: service_started
+    environment:
+      # Matrix - points to local Dendrite
+      MATRIX_HOMESERVER: http://dendrite:8008
+      MATRIX_USER_ID: ${MATRIX_USER_ID:-@secondbrain:localhost}
+      MATRIX_PASSWORD: ${MATRIX_PASSWORD:?MATRIX_PASSWORD required}
+      MATRIX_INBOX_ROOM: ${MATRIX_INBOX_ROOM:-#sb-inbox:localhost}
+      
+      # Database (internal Docker network)
+      DATABASE_URL: postgresql://secondbrain:${SECONDBRAIN_DB_PASSWORD:-secondbrain}@postgres:5432/secondbrain
+      
+      # LLM APIs
+      GLM_API_URL: ${GLM_API_URL:?GLM_API_URL required}
+      GLM_API_KEY: ${GLM_API_KEY:?GLM_API_KEY required}
+      GLM_MODEL: ${GLM_MODEL:-glm-4}
+      
+      CLAUDE_API_URL: ${CLAUDE_API_URL:-https://api.anthropic.com/v1/messages}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:?CLAUDE_API_KEY required}
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-sonnet-4-20250514}
+      
+      # Settings
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.6}
+      DIGEST_TARGET_USER: ${DIGEST_TARGET_USER:?DIGEST_TARGET_USER required}
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - secondbrain-net
+
+networks:
+  secondbrain-net:
+    driver: bridge
