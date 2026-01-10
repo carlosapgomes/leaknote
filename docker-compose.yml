@@ -89,6 +89,33 @@ services:
     networks:
       - leaknote-net
 
+  # ===================
+  # Leaknote Admin UI
+  # ===================
+  leaknote-admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: leaknote-admin
+    restart: unless-stopped
+    command: uvicorn leaknote.admin.app:app --host 0.0.0.0 --port 8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: postgresql://leaknote:${LEAKNOTE_DB_PASSWORD:-leaknote}@postgres:5432/leaknote
+
+      # Admin UI credentials
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
+    ports:
+      - "8000:8000"  # Only accessible via Tailscale
+    networks:
+      - leaknote-net
+    env_file:
+      - .env
+
 networks:
   leaknote-net:
     driver: bridge

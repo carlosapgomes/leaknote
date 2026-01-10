@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Delete - Leaknote Admin{% endblock %}
+
+{% block content %}
+<div class="bulk-delete">
+    <h1>Bulk Delete Records</h1>
+
+    {% if request.query_params.msg %}
+    <div class="alert alert-success">
+        {% if request.query_params.msg.startswith("deleted_") %}
+        Deleted {{ request.query_params.msg.split('_')[1] }} records successfully.
+        {% else %}
+        {{ request.query_params.msg }}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="warning-box">
+        <h2>⚠️ Warning</h2>
+        <p>This action <strong>cannot be undone</strong>. Deleted records will be permanently removed from the database.</p>
+    </div>
+
+    <form method="post" class="delete-form">
+        <div class="form-group">
+            <label for="table_name">Table</label>
+            <select id="table_name" name="table_name" required>
+                <option value="">-- Select a table --</option>
+                {% for table in tables %}
+                <option value="{{ table }}">{{ table }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="days">Delete records older than (days)</label>
+            <input type="number" id="days" name="days" value="30" min="1" required>
+            <small>Records created more than this many days ago will be deleted.</small>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger"
+                    onclick="return confirm('Are you sure you want to delete these records? This action cannot be undone.');">
+                Delete Records
+            </button>
+            <a href="/dashboard" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

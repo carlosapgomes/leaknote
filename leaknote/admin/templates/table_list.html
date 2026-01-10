@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.display_name }} - Leaknote Admin{% endblock %}
+
+{% block content %}
+<div class="table-list">
+    <div class="page-header">
+        <h1>{{ config.display_name }}</h1>
+        <div class="page-actions">
+            <a href="/table/{{ table_name }}/new" class="btn btn-primary">+ New Record</a>
+        </div>
+    </div>
+
+    {% if request.query_params.msg %}
+    <div class="alert alert-success">
+        {% if request.query_params.msg == "created" %}Record created successfully.
+        {% elif request.query_params.msg == "updated" %}Record updated successfully.
+        {% elif request.query_params.msg == "deleted" %}Record deleted successfully.
+        {% elif request.query_params.msg.startswith("deleted_") %}Deleted {{ request.query_params.msg.split('_')[1] }} records.
+        {% else %}{{ request.query_params.msg }}
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <form method="get" class="search-form">
+        <input type="text" name="search" placeholder="Search..." value="{{ search or '' }}">
+        <button type="submit" class="btn">Search</button>
+        {% if search %}
+        <a href="/table/{{ table_name }}" class="btn">Clear</a>
+        {% endif %}
+    </form>
+
+    {% if records %}
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    {% for col in config.list_columns %}
+                    <th>{{ col.replace('_', ' ').title() }}</th>
+                    {% endfor %}
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    {% for col in config.list_columns %}
+                    <td>
+                        {% if col == record.keys() | list | first %}
+                        <a href="/table/{{ table_name }}/{{ record[col] }}/edit" class="table-link">
+                            {{ record[col] if record[col] is not none else '-' }}
+                        </a>
+                        {% else %}
+                        {{ record[col] if record[col] is not none else '-' }}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="actions">
+                        <a href="/table/{{ table_name }}/{{ record['id'] }}/edit" class="btn btn-sm">Edit</a>
+                        {% if config.is_markdown %}
+                        <a href="/table/{{ table_name }}/{{ record['id'] }}/view" class="btn btn-sm">View</a>
+                        {% endif %}
+                        <form method="post" action="/table/{{ table_name }}/{{ record['id'] }}/delete" class="inline-form"
+                              onsubmit="return confirm('Are you sure?');">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}{% if search %}&search={{ search }}{% endif %}" class="btn">« Previous</a>
+        {% endif %}
+
+        <span class="pagination-info">Page {{ page }} of {{ total_pages }} ({{ total }} total)</span>
+
+        {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}{% if search %}&search={{ search }}{% endif %}" class="btn">Next »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+        <p>No records found{% if search %} matching "{{ search }}"{% endif %}.</p>
+        <a href="/table/{{ table_name }}/new" class="btn btn-primary">Create the first record</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

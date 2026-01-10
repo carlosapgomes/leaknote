@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{% if record %}Edit {{ config.display_name }}{% else %}New {{ config.display_name }}{% endif %} - Leaknote Admin{% endblock %}
+
+{% block extra_head %}
+{% if config.is_markdown %}
+<link rel="stylesheet" href="/static/js/easymde/easymde.min.css">
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="record-edit">
+    <div class="page-header">
+        <h1>{% if record %}Edit {{ config.display_name }}{% else %}New {{ config.display_name }}{% endif %}</h1>
+        <div class="page-actions">
+            <a href="/table/{{ table_name }}" class="btn">Cancel</a>
+        </div>
+    </div>
+
+    <form method="post" class="edit-form">
+        {% for field in config.fields %}
+        <div class="form-group">
+            <label for="{{ field.name }}">{{ field.label }}{% if field.required %} <span class="required">*</span>{% endif %}</label>
+
+            {% if field.type == "text" %}
+            <input type="text" id="{{ field.name }}" name="{{ field.name }}"
+                   value="{% if record %}{{ record[field.name] or '' }}{% elif field.default %}{{ field.default }}{% endif %}"
+                   {% if field.required %}required{% endif %}>
+
+            {% elif field.type == "textarea" %}
+            <textarea id="{{ field.name }}" name="{{ field.name }}" rows="5">{% if record %}{{ record[field.name] or '' }}{% endif %}</textarea>
+
+            {% elif field.type == "markdown" %}
+            <textarea id="{{ field.name }}" name="{{ field.name }}" rows="15">{% if record %}{{ record[field.name] or '' }}{% endif %}</textarea>
+
+            {% elif field.type == "select" %}
+            <select id="{{ field.name }}" name="{{ field.name }}">
+                {% for option in field.options %}
+                <option value="{{ option }}"
+                        {% if record and record[field.name] == option %}selected{% endif %}
+                        {% if not record and field.default == option %}selected{% endif %}>
+                    {{ option }}
+                </option>
+                {% endfor %}
+            </select>
+
+            {% elif field.type == "date" %}
+            <input type="date" id="{{ field.name }}" name="{{ field.name }}"
+                   value="{% if record and record[field.name] %}{{ record[field.name] }}{% endif %}">
+
+            {% elif field.type == "tags" %}
+            <input type="text" id="{{ field.name }}" name="{{ field.name }}"
+                   value="{% if record and record[field.name] %}{{ record[field.name] | join(', ') }}{% endif %}"
+                   placeholder="tag1, tag2, tag3">
+            <small>Separate multiple tags with commas</small>
+
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                {% if record %}Update{% else %}Create{% endif %}
+            </button>
+            <a href="/table/{{ table_name }}" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if config.is_markdown %}
+<script src="/static/js/easymde/easymde.min.js"></script>
+<script>
+// Initialize EasyMDE for markdown fields
+{% for field in config.fields %}
+{% if field.type == "markdown" %}
+new EasyMDE({
+    element: document.getElementById('{{ field.name }}'),
+    spellChecker: false,
+    autosave: {
+        enabled: true,
+        uniqueId: 'leaknote-{{ table_name }}-{% if record %}{{ record_id }}{% else %}new{% endif %}-{{ field.name }}',
+        delay: 1000,
+    },
+    toolbar: ['bold', 'italic', 'heading', '|',
+              'code', 'quote', 'unordered-list', 'ordered-list', '|',
+              'link', 'image', 'table', '|',
+              'preview', 'side-by-side', 'fullscreen', '|',
+              'guide'],
+});
+{% endif %}
+{% endfor %}
+</script>
+{% endif %}
+{% endblock %}

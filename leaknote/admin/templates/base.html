@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Leaknote Admin{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/admin.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <a href="/dashboard">Leaknote Admin</a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li class="dropdown">
+                    <a href="#">Tables ▾</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/table/people">People</a></li>
+                        <li><a href="/table/projects">Projects</a></li>
+                        <li><a href="/table/ideas">Ideas</a></li>
+                        <li><a href="/table/admin">Admin</a></li>
+                        <li class="divider"></li>
+                        <li><a href="/table/decisions">Decisions</a></li>
+                        <li><a href="/table/howtos">How-Tos</a></li>
+                        <li><a href="/table/snippets">Snippets</a></li>
+                    </ul>
+                </li>
+                <li><a href="/bulk-delete">Bulk Delete</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+    <script>
+        // Mobile dropdown toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownLink = dropdown.querySelector('a');
+
+            dropdownLink.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    dropdown.classList.toggle('active');
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
