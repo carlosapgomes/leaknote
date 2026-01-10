@@ -3,11 +3,11 @@
 -- NOTE: Passwords are replaced by setup.sh
 
 -- Create Dendrite database and user
-CREATE USER dendrite WITH PASSWORD 'DENDRITE_PASSWORD_PLACEHOLDER';
+CREATE USER dendrite WITH PASSWORD 'rH0_AZEt7ZV0SW2LE0Ab';
 CREATE DATABASE dendrite OWNER dendrite;
 
 -- Create Leaknote database and user
-CREATE USER leaknote WITH PASSWORD 'LEAKNOTE_PASSWORD_PLACEHOLDER';
+CREATE USER leaknote WITH PASSWORD 'gZ5_6V7NYhCbRj5gpGgB';
 CREATE DATABASE leaknote OWNER leaknote;
 
 -- Grant permissions
