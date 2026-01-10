@@ -47,6 +47,7 @@ def parse_command(text: str) -> Optional[Tuple[str, Optional[str]]]:
     """
     Parse a command from message text.
     Returns (command_name, argument) or None if not a command.
+    Arguments are normalized to lowercase for case-insensitive matching.
     """
     text = text.strip()
 
@@ -57,6 +58,9 @@ def parse_command(text: str) -> Optional[Tuple[str, Optional[str]]]:
         match = pattern.match(text)
         if match:
             arg = match.group(1) if match.lastindex else None
+            # Normalize argument to lowercase for case-insensitive matching
+            if arg:
+                arg = arg.lower()
             return cmd_name, arg
 
     return None

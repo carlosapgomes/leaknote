@@ -1,38 +1,9 @@
-# Environment
-.env
-
-# Data directories
-data/postgres/
-data/backups/*.sql.gz
-
-# Dendrite data
-dendrite/media/
-dendrite/jetstream/
-dendrite/searchindex/
-
-# Logs
-logs/*.log
-
-# Python
+# Add to existing .gitignore
 __pycache__/
-*.pyc
-*.pyo
-*.egg-info/
-.eggs/
-*.egg
-venv/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
 .venv/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-credentials.json
-dendrite/
-store/
-
+*.egg-info/

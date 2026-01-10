@@ -157,6 +157,29 @@ fix: project
 fix: idea
 ```
 
+## Testing
+
+The project includes a comprehensive automated test suite:
+
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run all tests
+pytest
+
+# Run only unit tests (fast)
+pytest -m unit
+
+# Run with coverage report
+pytest --cov=bot --cov-report=html
+
+# View coverage report
+open htmlcov/index.html
+```
+
+See [tests/README.md](tests/README.md) for detailed testing documentation.
+
 ## Configuration
 
 See [docs/configuration.md](docs/configuration.md) for:
@@ -190,6 +213,10 @@ leaknote/
 │   ├── queries.py          # Database queries
 │   ├── digest.py           # Daily digest
 │   └── weekly_review.py    # Weekly review
+├── tests/                  # Automated tests
+│   ├── conftest.py         # Test fixtures
+│   ├── unit/               # Unit tests
+│   └── integration/        # Integration tests
 ├── scripts/                # Cron scripts
 │   ├── daily_digest.py
 │   ├── weekly_review.py
@@ -208,6 +235,8 @@ leaknote/
 ├── Dockerfile
 ├── schema.sql
 ├── requirements.txt
+├── requirements-dev.txt    # Testing dependencies
+├── pytest.ini              # Pytest configuration
 ├── setup.sh
 ├── create-users.sh
 └── crontab.example
