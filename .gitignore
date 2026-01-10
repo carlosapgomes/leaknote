@@ -7,3 +7,7 @@ __pycache__/
 htmlcov/
 .venv/
 *.egg-info/
+.env
+credentials.json
+dendrite/
+store/
