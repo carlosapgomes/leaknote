@@ -1,7 +1,6 @@
 """Query command handling (?recall, ?search, etc.)."""
 
 import re
-import httpx
 from typing import Optional, Tuple, List, Dict, Any
 from pathlib import Path
 
@@ -103,31 +102,22 @@ async def format_search_results(
     if not use_llm:
         return f"🔍 Results for: {query}\n\n" + "\n\n".join(results_text)
 
-    # Use Claude to format nicely
+    # Use summary client to format nicely
     prompt = RETRIEVAL_PROMPT.format(
         query=query,
         results="\n\n".join(results_text),
     )
 
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                Config.CLAUDE_API_URL,
-                headers={
-                    "x-api-key": Config.CLAUDE_API_KEY,
-                    "anthropic-version": "2023-06-01",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "model": Config.CLAUDE_MODEL,
-                    "max_tokens": 500,
-                    "messages": [{"role": "user", "content": prompt}],
-                },
-            )
-            response.raise_for_status()
+        client = Config.get_summary_client()
 
-            result = response.json()
-            return result["content"][0]["text"]
+        response = await client.complete(
+            prompt=prompt,
+            temperature=0.5,
+            max_tokens=500,
+        )
+
+        return response.content
     except Exception:
         # Fallback to simple formatting
         return f"🔍 Results for: {query}\n\n" + "\n\n".join(results_text)

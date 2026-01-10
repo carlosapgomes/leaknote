@@ -69,14 +69,17 @@ services:
       # Database
       DATABASE_URL: postgresql://leaknote:${LEAKNOTE_DB_PASSWORD:-leaknote}@postgres:5432/leaknote
 
-      # LLM APIs
-      GLM_API_URL: ${GLM_API_URL:?GLM_API_URL required}
-      GLM_API_KEY: ${GLM_API_KEY:?GLM_API_KEY required}
-      GLM_MODEL: ${GLM_MODEL:-glm-4}
+      # Classification LLM (cheap, fast)
+      CLASSIFY_PROVIDER: ${CLASSIFY_PROVIDER:-openai}
+      CLASSIFY_API_URL: ${CLASSIFY_API_URL:?CLASSIFY_API_URL required}
+      CLASSIFY_API_KEY: ${CLASSIFY_API_KEY:?CLASSIFY_API_KEY required}
+      CLASSIFY_MODEL: ${CLASSIFY_MODEL:-glm-4}
 
-      CLAUDE_API_URL: ${CLAUDE_API_URL:-https://api.anthropic.com/v1/messages}
-      CLAUDE_API_KEY: ${CLAUDE_API_KEY:?CLAUDE_API_KEY required}
-      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-sonnet-4-20250514}
+      # Summary LLM (quality)
+      SUMMARY_PROVIDER: ${SUMMARY_PROVIDER:-openai}
+      SUMMARY_API_URL: ${SUMMARY_API_URL:?SUMMARY_API_URL required}
+      SUMMARY_API_KEY: ${SUMMARY_API_KEY:?SUMMARY_API_KEY required}
+      SUMMARY_MODEL: ${SUMMARY_MODEL:-anthropic/claude-sonnet-4}
 
       # Settings
       CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.6}

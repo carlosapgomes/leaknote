@@ -14,7 +14,7 @@ POSTGRES_PASSWORD=your-secure-admin-password
 # Leaknote database credentials
 LEAKNOTE_DB_PASSWORD=your-leaknote-db-password
 
-# Dendrite database credentials  
+# Dendrite database credentials
 DENDRITE_DB_PASSWORD=your-dendrite-db-password
 ```
 
@@ -35,98 +35,193 @@ MATRIX_INBOX_ROOM=#leaknote-inbox:localhost
 DIGEST_TARGET_USER=@carlos:localhost
 ```
 
-### LLM APIs
+## LLM Configuration
+
+Leaknote uses two LLM clients with different roles:
+
+| Client | Purpose | Characteristics |
+|--------|---------|-----------------|
+| **Classify** | Route incoming thoughts | Cheap, fast, runs frequently |
+| **Summary** | Digests, reviews, retrieval | Quality matters, less frequent |
+
+### Provider Types
+
+Both clients support two provider types:
+
+- `openai` - Works with any OpenAI-compatible API
+- `anthropic` - Native Anthropic API (for Claude-specific features)
+
+### Configuration Pattern
+
+Each LLM has four settings:
 
 ```bash
-# GLM-4 (for classification - cheap, fast)
-GLM_API_URL=https://api.z.ai/v1/chat/completions
-GLM_API_KEY=your-glm-key
-GLM_MODEL=glm-4
-
-# Claude (for summaries and retrieval - quality matters)
-CLAUDE_API_URL=https://api.anthropic.com/v1/messages
-CLAUDE_API_KEY=your-claude-key
-CLAUDE_MODEL=claude-sonnet-4-20250514
+{PREFIX}_PROVIDER=openai|anthropic
+{PREFIX}_API_URL=https://...
+{PREFIX}_API_KEY=your-api-key
+{PREFIX}_MODEL=model-name
 ```
 
-### Bot Settings
+### Classification LLM
+
+```bash
+CLASSIFY_PROVIDER=openai
+CLASSIFY_API_URL=https://api.z.ai/v1
+CLASSIFY_API_KEY=your-key
+CLASSIFY_MODEL=glm-4
+```
+
+### Summary LLM
+
+```bash
+SUMMARY_PROVIDER=openai
+SUMMARY_API_URL=https://openrouter.ai/api/v1
+SUMMARY_API_KEY=your-key
+SUMMARY_MODEL=anthropic/claude-sonnet-4
+```
+
+## OpenAI-Compatible Endpoints
+
+The `openai` provider works with many services:
+
+| Service | API URL | Notes |
+|---------|---------|-------|
+| **OpenAI** | `https://api.openai.com/v1` | GPT-4o, GPT-4, etc. |
+| **OpenRouter** | `https://openrouter.ai/api/v1` | Access to all models |
+| **Ollama** | `http://localhost:11434/v1` | Local models, free |
+| **vLLM** | `http://localhost:8000/v1` | Self-hosted inference |
+| **LiteLLM** | `http://localhost:4000/v1` | Proxy to any provider |
+| **Together AI** | `https://api.together.xyz/v1` | Fast open models |
+| **Groq** | `https://api.groq.com/openai/v1` | Very fast inference |
+| **Mistral** | `https://api.mistral.ai/v1` | Mistral models |
+| **DeepSeek** | `https://api.deepseek.com/v1` | DeepSeek models |
+| **Z.AI** | `https://api.z.ai/v1` | GLM-4 |
+
+## Example Configurations
+
+### Budget Setup (Local + OpenRouter)
+
+```bash
+# Classification: Local Ollama (free)
+CLASSIFY_PROVIDER=openai
+CLASSIFY_API_URL=http://localhost:11434/v1
+CLASSIFY_API_KEY=ollama
+CLASSIFY_MODEL=llama3
+
+# Summary: OpenRouter (pay per use)
+SUMMARY_PROVIDER=openai
+SUMMARY_API_URL=https://openrouter.ai/api/v1
+SUMMARY_API_KEY=your-openrouter-key
+SUMMARY_MODEL=anthropic/claude-sonnet-4
+```
+
+### Speed Setup (Groq + Groq)
+
+```bash
+# Classification: Groq (very fast)
+CLASSIFY_PROVIDER=openai
+CLASSIFY_API_URL=https://api.groq.com/openai/v1
+CLASSIFY_API_KEY=your-groq-key
+CLASSIFY_MODEL=llama-3.1-8b-instant
+
+# Summary: Groq Llama 70B
+SUMMARY_PROVIDER=openai
+SUMMARY_API_URL=https://api.groq.com/openai/v1
+SUMMARY_API_KEY=your-groq-key
+SUMMARY_MODEL=llama-3.1-70b-versatile
+```
+
+### Quality Setup (Native Anthropic)
+
+```bash
+# Classification: Z.AI GLM-4
+CLASSIFY_PROVIDER=openai
+CLASSIFY_API_URL=https://api.z.ai/v1
+CLASSIFY_API_KEY=your-zai-key
+CLASSIFY_MODEL=glm-4
+
+# Summary: Native Claude API
+SUMMARY_PROVIDER=anthropic
+SUMMARY_API_URL=https://api.anthropic.com/v1/messages
+SUMMARY_API_KEY=your-anthropic-key
+SUMMARY_MODEL=claude-sonnet-4-20250514
+```
+
+### All OpenRouter
+
+```bash
+# Both via OpenRouter
+CLASSIFY_PROVIDER=openai
+CLASSIFY_API_URL=https://openrouter.ai/api/v1
+CLASSIFY_API_KEY=your-key
+CLASSIFY_MODEL=meta-llama/llama-3-8b-instruct
+
+SUMMARY_PROVIDER=openai
+SUMMARY_API_URL=https://openrouter.ai/api/v1
+SUMMARY_API_KEY=your-key
+SUMMARY_MODEL=anthropic/claude-sonnet-4
+```
+
+### Fully Local (Ollama)
+
+```bash
+# Both local - completely free
+CLASSIFY_PROVIDER=openai
+CLASSIFY_API_URL=http://localhost:11434/v1
+CLASSIFY_API_KEY=ollama
+CLASSIFY_MODEL=llama3:8b
+
+SUMMARY_PROVIDER=openai
+SUMMARY_API_URL=http://localhost:11434/v1
+SUMMARY_API_KEY=ollama
+SUMMARY_MODEL=llama3:70b
+```
+
+## Adding New Providers
+
+The LLM abstraction is in `bot/llm/`:
+
+```
+bot/llm/
+├── __init__.py         # LLMClient interface, LLMResponse type
+├── factory.py          # create_client() factory
+├── openai_adapter.py   # OpenAI-compatible adapter
+└── anthropic_adapter.py # Native Anthropic adapter
+```
+
+To add a new provider:
+
+1. Create `bot/llm/newprovider_adapter.py` implementing `LLMClient`
+2. Add to `factory.py` `create_client()` function
+3. Use `PROVIDER=newprovider` in config
+
+## Bot Settings
 
 ```bash
 # Classification confidence threshold (0.0-1.0)
 # Below this, bot asks for clarification
 CONFIDENCE_THRESHOLD=0.6
+
+# Optional: Per-category thresholds
+CONFIDENCE_THRESHOLD_PEOPLE=0.7
+CONFIDENCE_THRESHOLD_PROJECTS=0.6
+CONFIDENCE_THRESHOLD_IDEAS=0.5
+CONFIDENCE_THRESHOLD_ADMIN=0.65
 ```
 
-## Dendrite Configuration
+### Tuning Thresholds
 
-After running `setup.sh`, the Dendrite configuration is at `dendrite/config/dendrite.yaml`.
-
-### Key Settings
-
-```yaml
-global:
-  # Must match MATRIX_SERVER_NAME
-  server_name: localhost
-  
-  # Database connection (password must match DENDRITE_DB_PASSWORD)
-  database:
-    connection_string: postgres://dendrite:your-password@postgres/dendrite?sslmode=disable
-
-client_api:
-  # Set to false to allow user registration via Element
-  # Set to true to only allow creation via create-users.sh
-  registration_disabled: true
-```
-
-### Federation (Optional)
-
-If you want to federate with other Matrix servers:
-
-1. Set `server_name` to your public domain
-2. Configure port 8448 forwarding
-3. Set up SSL certificates
-4. Configure DNS SRV records
-
-For local-only use, leave federation disabled.
-
-## LLM Model Selection
-
-### Classification (GLM-4)
-
-Classification needs to be fast and cheap since it runs on every capture. Recommended models:
-
-| Model | Speed | Cost | Accuracy |
-|-------|-------|------|----------|
-| GLM-4 (Z.AI) | Fast | Very low | Good |
-| GPT-3.5-turbo | Fast | Low | Good |
-| Claude Haiku | Fast | Low | Very good |
-| Local (Llama 3) | Varies | Free | Moderate |
-
-### Summaries (Claude)
-
-Digests and retrieval benefit from higher quality. Recommended:
-
-| Model | Quality | Cost |
-|-------|---------|------|
-| Claude Sonnet | Excellent | Moderate |
-| Claude Opus | Best | Higher |
-| GPT-4o | Excellent | Moderate |
-
-## Confidence Threshold Tuning
-
-The default threshold is 0.6. Adjust based on your experience:
-
-### Check Your Stats
+Check your stats:
 
 ```sql
-SELECT 
+SELECT
     DATE(created_at) as day,
     COUNT(*) FILTER (WHERE status = 'filed') as auto_filed,
     COUNT(*) FILTER (WHERE status = 'needs_review') as needed_review,
     COUNT(*) FILTER (WHERE status = 'fixed') as fixed,
     ROUND(
-        100.0 * COUNT(*) FILTER (WHERE status = 'fixed') / 
-        NULLIF(COUNT(*) FILTER (WHERE status = 'filed'), 0), 
+        100.0 * COUNT(*) FILTER (WHERE status = 'fixed') /
+        NULLIF(COUNT(*) FILTER (WHERE status = 'filed'), 0),
         1
     ) as fix_rate_pct
 FROM inbox_log
@@ -135,60 +230,31 @@ GROUP BY DATE(created_at)
 ORDER BY day;
 ```
 
-### Tuning Guidelines
-
 | Observation | Action |
 |-------------|--------|
-| Fix rate > 15% | Increase threshold to 0.7 |
-| Clarification rate > 30% | Decrease threshold to 0.5 |
-| Target | <10% fix rate, <20% clarification rate |
+| Fix rate > 15% | Increase threshold |
+| Clarification rate > 30% | Decrease threshold |
+| Target | <10% fix, <20% clarification |
 
-### Per-Category Thresholds (Advanced)
+## Dendrite Configuration
 
-If one category has more errors, you can set per-category thresholds in `bot/config.py`:
+After running `setup.sh`, Dendrite config is at `dendrite/config/dendrite.yaml`.
 
-```python
-CONFIDENCE_THRESHOLDS = {
-    "people": 0.7,      # Higher - misclassifying people is annoying
-    "projects": 0.6,
-    "ideas": 0.5,       # Lower - ideas are low-stakes
-    "admin": 0.65,
-}
-```
+Key settings:
 
-## Database Schema
+```yaml
+global:
+  server_name: localhost  # Must match MATRIX_SERVER_NAME
+  database:
+    connection_string: postgres://dendrite:password@postgres/dendrite?sslmode=disable
 
-The database schema is defined in `schema.sql`. Key tables:
-
-### Dynamic Categories
-
-```sql
-people (id, name, context, follow_ups, last_touched, tags, created_at, updated_at)
-projects (id, name, status, next_action, notes, tags, created_at, updated_at)
-ideas (id, title, one_liner, elaboration, tags, created_at, updated_at)
-admin (id, name, due_date, status, notes, tags, created_at, updated_at)
-```
-
-### Reference Categories
-
-```sql
-decisions (id, title, decision, rationale, context, tags, created_at)
-howtos (id, title, content, tags, created_at, updated_at)
-snippets (id, title, content, tags, created_at, updated_at)
-```
-
-### System Tables
-
-```sql
-inbox_log (id, raw_text, destination, record_id, confidence, status, matrix_event_id, matrix_room_id, created_at)
-pending_clarifications (id, inbox_log_id, matrix_event_id, matrix_room_id, suggested_category, created_at)
+client_api:
+  registration_disabled: true  # Set false to allow Element registration
 ```
 
 ## Network Configuration
 
 ### Docker Internal Network
-
-Services communicate via Docker network:
 
 | Service | Internal Hostname | Port |
 |---------|-------------------|------|
@@ -200,33 +266,11 @@ Services communicate via Docker network:
 
 | Port | Service | Purpose |
 |------|---------|---------|
-| 8008 | Dendrite | Matrix client API (Element connects here) |
-| 8448 | Dendrite | Matrix federation (optional) |
+| 8008 | Dendrite | Matrix client API |
+| 8448 | Dendrite | Federation (optional) |
 
-### Exposing to Local Network
-
-To access from other devices:
+### Local Network Access
 
 1. Update `MATRIX_SERVER_NAME` to your server's IP
 2. Update `dendrite/config/dendrite.yaml` server_name
 3. Connect Element to `http://YOUR_IP:8008`
-
-### Public Access (Reverse Proxy)
-
-For public access, put a reverse proxy in front:
-
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name matrix.yourdomain.com;
-    
-    ssl_certificate /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-    
-    location / {
-        proxy_pass http://localhost:8008;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```

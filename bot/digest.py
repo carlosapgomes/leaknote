@@ -1,6 +1,5 @@
 """Daily digest generation."""
 
-import httpx
 from datetime import datetime
 from pathlib import Path
 
@@ -86,27 +85,16 @@ async def generate_daily_digest() -> str:
 
     data_text = "\n\n".join(data_sections)
 
-    # Call Claude for summarization
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            Config.CLAUDE_API_URL,
-            headers={
-                "x-api-key": Config.CLAUDE_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": Config.CLAUDE_MODEL,
-                "max_tokens": 500,
-                "messages": [
-                    {"role": "user", "content": DAILY_DIGEST_PROMPT + data_text}
-                ],
-            },
-        )
-        response.raise_for_status()
+    # Get summary client and generate digest
+    client = Config.get_summary_client()
 
-        result = response.json()
-        return result["content"][0]["text"]
+    response = await client.complete(
+        prompt=DAILY_DIGEST_PROMPT + data_text,
+        temperature=0.7,
+        max_tokens=500,
+    )
+
+    return response.content
 
 
 def format_digest_date() -> str:
