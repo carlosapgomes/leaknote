@@ -50,37 +50,26 @@ else
     echo "✓ Signing key already exists"
 fi
 
-# Generate Dendrite config
+# Generate Dendrite config from template
 if [ ! -f dendrite/config/dendrite.yaml ]; then
     echo ""
-    echo "Generating Dendrite configuration..."
+    echo "Generating Dendrite configuration from template..."
 
     SERVER_NAME="${MATRIX_SERVER_NAME:-localhost}"
     DB_PASSWORD="${DENDRITE_DB_PASSWORD:-dendrite}"
+    REGISTRATION_SECRET="${DENDRITE_REGISTRATION_SECRET:-$(openssl rand -hex 32)}"
 
-    docker run --rm --entrypoint="/bin/sh" \
-        -v "$(pwd)/dendrite/config:/mnt" \
-        matrixdotorg/dendrite-monolith:latest \
-        -c "/usr/bin/generate-config \
-            -dir /var/dendrite/ \
-            -db postgres://dendrite:${DB_PASSWORD}@postgres/dendrite?sslmode=disable \
-            -server ${SERVER_NAME} > /mnt/dendrite.yaml"
+    # Copy template and replace placeholders
+    sed "s/MATRIX_SERVER_NAME_PLACEHOLDER/${SERVER_NAME}/g" \
+        dendrite/config/dendrite.yaml.template | \
+    sed "s/DENDRITE_DB_PASSWORD_PLACEHOLDER/${DB_PASSWORD}/g" | \
+    sed "s/REGISTRATION_SHARED_SECRET_PLACEHOLDER/${REGISTRATION_SECRET}/g" \
+        > dendrite/config/dendrite.yaml
 
     echo "✓ Dendrite config generated"
 else
     echo "✓ Dendrite config already exists"
 fi
-
-# Update init-db.sql with passwords
-echo ""
-echo "Updating database initialization script..."
-LEAKNOTE_PW="${LEAKNOTE_DB_PASSWORD:-leaknote}"
-DENDRITE_PW="${DENDRITE_DB_PASSWORD:-dendrite}"
-
-sed -i "s/LEAKNOTE_PASSWORD_PLACEHOLDER/${LEAKNOTE_PW}/g" init-db.sql
-sed -i "s/DENDRITE_PASSWORD_PLACEHOLDER/${DENDRITE_PW}/g" init-db.sql
-
-echo "✓ Database init script updated"
 
 echo ""
 echo "========================================"
