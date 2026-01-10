@@ -10,6 +10,7 @@ A self-hosted "second brain" that captures your thoughts via Matrix, classifies 
 - **Daily digest**: Morning briefing with top actions (06:00)
 - **Weekly review**: Sunday summary with patterns and suggestions (16:00)
 - **On-demand retrieval**: `?recall`, `?search`, `?projects` commands
+- **Web admin UI**: Browser-based management for records (Tailscale-only access)
 - **Trust mechanisms**: Confirmations, fix commands, audit log
 
 ## Architecture
@@ -35,6 +36,14 @@ A self-hosted "second brain" that captures your thoughts via Matrix, classifies 
 │  ├── people, projects, ideas, admin (dynamic)                   │
 │  ├── decisions, howtos, snippets (reference)                    │
 │  └── inbox_log (audit trail)                                    │
+└─────────────────────────────────────────────────────────────────┘
+                              ▲
+                              │
+┌─────────────────────────────────────────────────────────────────┐
+│  Admin UI (FastAPI) - Tailscale Only                            │
+│  ├── CRUD operations for all tables                             │
+│  ├── Markdown editor (EasyMDE)                                  │
+│  └── Bulk delete and cleanup                                    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -157,6 +166,38 @@ fix: project
 fix: idea
 ```
 
+### Admin Web UI
+
+The admin UI provides browser-based management for all records:
+
+**Access (Tailscale only):**
+```
+http://<tailscale-ip>:8000
+```
+
+**Features:**
+- **Dashboard**: Overview stats, quick links to tables
+- **CRUD Operations**: Create, edit, view, and delete records
+- **Markdown Editor**: EasyMDE editor for decisions, howtos, and snippets
+- **Bulk Delete**: Delete records by date range
+- **Search**: Full-text search across all tables
+- **Mobile Responsive**: Works on phones and tablets
+
+**Authentication:**
+- HTTP Basic Auth (browser prompts for username/password)
+- Credentials set in `.env`:
+  ```bash
+  ADMIN_USERNAME=admin
+  ADMIN_PASSWORD=your-secure-password
+  ```
+
+**Tables available:**
+- Dynamic: people, projects, ideas, admin
+- Reference: decisions, howtos, snippets
+- System: pending_clarifications (view only)
+
+For detailed documentation, see [docs/admin-ui.md](docs/admin-ui.md).
+
 ## Testing
 
 The project includes a comprehensive automated test suite:
@@ -213,6 +254,12 @@ leaknote/
 │   ├── queries.py          # Database queries
 │   ├── digest.py           # Daily digest
 │   └── weekly_review.py    # Weekly review
+├── admin/                  # Admin UI module
+│   ├── app.py              # FastAPI application
+│   ├── routes.py           # Admin routes
+│   ├── dependencies.py     # Dependencies and table configs
+│   ├── templates/          # Jinja2 templates
+│   └── static/             # CSS, JS (EasyMDE)
 ├── tests/                  # Automated tests
 │   ├── conftest.py         # Test fixtures
 │   ├── unit/               # Unit tests
@@ -230,7 +277,8 @@ leaknote/
 ├── docs/                   # Documentation
 │   ├── architecture.md
 │   ├── configuration.md
-│   └── operations.md
+│   ├── operations.md
+│   └── admin-ui.md         # Admin UI documentation
 ├── docker-compose.yml
 ├── Dockerfile
 ├── schema.sql
