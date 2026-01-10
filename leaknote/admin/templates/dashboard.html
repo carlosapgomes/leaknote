@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Leaknote Admin{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>Dashboard</h1>
+
+    {% if request.query_params.msg %}
+    <div class="alert alert-success">
+        {{ request.query_params.msg }}
+    </div>
+    {% endif %}
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h2>Record Counts</h2>
+            <ul>
+                <li><a href="/table/people">People</a>: {{ counts.people }}</li>
+                <li><a href="/table/projects">Projects</a>: {{ counts.projects }}</li>
+                <li><a href="/table/ideas">Ideas</a>: {{ counts.ideas }}</li>
+                <li><a href="/table/admin">Admin</a>: {{ counts.admin }}</li>
+                <li><a href="/table/decisions">Decisions</a>: {{ counts.decisions }}</li>
+                <li><a href="/table/howtos">How-Tos</a>: {{ counts.howtos }}</li>
+                <li><a href="/table/snippets">Snippets</a>: {{ counts.snippets }}</li>
+            </ul>
+        </div>
+
+        <div class="stat-card">
+            <h2>Inbox Stats (7 days)</h2>
+            <ul>
+                <li>Total: {{ stats.total }}</li>
+                <li>Filed: {{ stats.filed }}</li>
+                <li>Needs Review: {{ stats.needs_review }}</li>
+                <li>Fixed: {{ stats.fixed }}</li>
+            </ul>
+        </div>
+
+        <div class="stat-card">
+            <h2>Active Projects</h2>
+            {% if active_projects %}
+            <ul>
+                {% for p in active_projects %}
+                <li><a href="/table/projects/{{ p.id }}/edit">{{ p.name }}</a> ({{ p.status }})</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No active projects</p>
+            {% endif %}
+        </div>
+
+        <div class="stat-card">
+            <h2>Admin Tasks</h2>
+            {% if due_soon %}
+            <h3>Due Soon (7 days)</h3>
+            <ul>
+                {% for task in due_soon %}
+                <li><a href="/table/admin/{{ task.id }}/edit">{{ task.name }}</a> - {{ task.due_date }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% if overdue %}
+            <h3 class="text-danger">Overdue</h3>
+            <ul>
+                {% for task in overdue %}
+                <li><a href="/table/admin/{{ task.id }}/edit">{{ task.name }}</a> - {{ task.due_date }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            {% if not due_soon and not overdue %}
+            <p>No pending tasks</p>
+            {% endif %}
+        </div>
+
+        <div class="stat-card">
+            <h2>People with Follow-ups</h2>
+            {% if followups %}
+            <ul>
+                {% for p in followups %}
+                <li><a href="/table/people/{{ p.id }}/edit">{{ p.name }}</a></li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No pending follow-ups</p>
+            {% endif %}
+        </div>
+
+        <div class="stat-card">
+            <h2>Recent Ideas (7 days)</h2>
+            {% if recent_ideas %}
+            <ul>
+                {% for idea in recent_ideas %}
+                <li><a href="/table/ideas/{{ idea.id }}/edit">{{ idea.title }}</a></li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>No recent ideas</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
