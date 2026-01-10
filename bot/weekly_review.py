@@ -1,10 +1,10 @@
 """Weekly review generation."""
 
-import httpx
 from datetime import datetime, timedelta
 from pathlib import Path
 
 from config import Config
+from llm import create_summarizer_client
 from queries import (
     get_active_projects,
     get_waiting_projects,
@@ -127,27 +127,14 @@ async def generate_weekly_review() -> str:
 
     data_text = "\n\n".join(data_sections)
 
-    # Call Claude for summarization
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            Config.CLAUDE_API_URL,
-            headers={
-                "x-api-key": Config.CLAUDE_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": Config.CLAUDE_MODEL,
-                "max_tokens": 800,
-                "messages": [
-                    {"role": "user", "content": WEEKLY_REVIEW_PROMPT + data_text}
-                ],
-            },
-        )
-        response.raise_for_status()
-
-        result = response.json()
-        return result["content"][0]["text"]
+    # Call LLM for summarization
+    llm = create_summarizer_client()
+    return await llm.complete(
+        user_prompt=WEEKLY_REVIEW_PROMPT + data_text,
+        model=Config.SUMMARIZER_LLM_MODEL,
+        temperature=Config.SUMMARIZER_LLM_TEMPERATURE,
+        max_tokens=Config.SUMMARIZER_LLM_MAX_TOKENS,
+    )
 
 
 def format_review_date_range() -> str:

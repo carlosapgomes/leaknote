@@ -18,15 +18,25 @@ class Config:
     # Database
     DATABASE_URL = os.getenv("DATABASE_URL")
 
-    # LLM - Classification (cheap, fast)
-    GLM_API_URL = os.getenv("GLM_API_URL")
-    GLM_API_KEY = os.getenv("GLM_API_KEY")
-    GLM_MODEL = os.getenv("GLM_MODEL", "glm-4")
+    # ===================
+    # LLM Configuration
+    # ===================
 
-    # LLM - Summaries (quality matters)
-    CLAUDE_API_URL = os.getenv("CLAUDE_API_URL", "https://api.anthropic.com/v1/messages")
-    CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-    CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-20250514")
+    # Router/Classifier LLM (cheap, fast)
+    ROUTER_LLM_MODEL = os.getenv("ROUTER_LLM_MODEL", "glm-4")
+    ROUTER_LLM_TEMPERATURE = float(os.getenv("ROUTER_LLM_TEMPERATURE", "0.1"))
+    ROUTER_LLM_MAX_TOKENS = int(os.getenv("ROUTER_LLM_MAX_TOKENS", "1024"))
+    ROUTER_LLM_API_KEY = os.getenv("ROUTER_LLM_API_KEY")
+    ROUTER_LLM_BASE_URL = os.getenv("ROUTER_LLM_BASE_URL")
+    ROUTER_LLM_TIMEOUT = float(os.getenv("ROUTER_LLM_TIMEOUT", "30.0"))
+
+    # Summarizer LLM (quality matters)
+    SUMMARIZER_LLM_MODEL = os.getenv("SUMMARIZER_LLM_MODEL", "claude-sonnet-4-20250514")
+    SUMMARIZER_LLM_TEMPERATURE = float(os.getenv("SUMMARIZER_LLM_TEMPERATURE", "0.2"))
+    SUMMARIZER_LLM_MAX_TOKENS = int(os.getenv("SUMMARIZER_LLM_MAX_TOKENS", "800"))
+    SUMMARIZER_LLM_API_KEY = os.getenv("SUMMARIZER_LLM_API_KEY")
+    SUMMARIZER_LLM_BASE_URL = os.getenv("SUMMARIZER_LLM_BASE_URL")
+    SUMMARIZER_LLM_TIMEOUT = float(os.getenv("SUMMARIZER_LLM_TIMEOUT", "60.0"))
 
     # Settings
     CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.6"))
@@ -53,9 +63,10 @@ class Config:
             ("MATRIX_PASSWORD", cls.MATRIX_PASSWORD),
             ("MATRIX_INBOX_ROOM", cls.MATRIX_INBOX_ROOM),
             ("DATABASE_URL", cls.DATABASE_URL),
-            ("GLM_API_URL", cls.GLM_API_URL),
-            ("GLM_API_KEY", cls.GLM_API_KEY),
-            ("CLAUDE_API_KEY", cls.CLAUDE_API_KEY),
+            ("ROUTER_LLM_API_KEY", cls.ROUTER_LLM_API_KEY),
+            ("ROUTER_LLM_BASE_URL", cls.ROUTER_LLM_BASE_URL),
+            ("SUMMARIZER_LLM_API_KEY", cls.SUMMARIZER_LLM_API_KEY),
+            ("SUMMARIZER_LLM_BASE_URL", cls.SUMMARIZER_LLM_BASE_URL),
             ("DIGEST_TARGET_USER", cls.DIGEST_TARGET_USER),
         ]
         return [name for name, value in required if not value]

@@ -2,11 +2,11 @@
 
 import asyncio
 import json
-import httpx
 from typing import Optional
 from pathlib import Path
 
 from config import Config
+from llm import create_router_client, LLMResponseError
 
 # Load classification prompt from file
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
@@ -29,7 +29,7 @@ RETRY_DELAY = 2
 
 async def classify_thought(text: str) -> dict:
     """
-    Classify a thought using the classification LLM (GLM-4).
+    Classify a thought using the classification LLM.
 
     Returns dict with:
     - category: people|projects|ideas|admin
@@ -38,48 +38,32 @@ async def classify_thought(text: str) -> dict:
     - tags: list of tags
     """
     last_error = None
+    llm = create_router_client()
 
     for attempt in range(MAX_RETRIES):
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    Config.GLM_API_URL,
-                    headers={
-                        "Authorization": f"Bearer {Config.GLM_API_KEY}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": Config.GLM_MODEL,
-                        "messages": [
-                            {"role": "user", "content": CLASSIFICATION_PROMPT + text}
-                        ],
-                        "temperature": 0.1,  # Low for consistent classification
-                    },
-                )
-                response.raise_for_status()
+            content = await llm.complete(
+                user_prompt=CLASSIFICATION_PROMPT + text,
+                model=Config.ROUTER_LLM_MODEL,
+                temperature=Config.ROUTER_LLM_TEMPERATURE,
+                max_tokens=Config.ROUTER_LLM_MAX_TOKENS,
+            )
 
-                result = response.json()
-                content = result["choices"][0]["message"]["content"]
+            # Parse JSON from response (handle potential markdown wrapping)
+            content = content.strip()
+            if content.startswith("```"):
+                content = content.split("\n", 1)[1].rsplit("```", 1)[0]
 
-                # Parse JSON from response (handle potential markdown wrapping)
-                content = content.strip()
-                if content.startswith("```"):
-                    content = content.split("\n", 1)[1].rsplit("```", 1)[0]
+            return json.loads(content)
 
-                return json.loads(content)
-
-        except httpx.TimeoutException as e:
+        except LLMResponseError as e:
             last_error = e
             if attempt < MAX_RETRIES - 1:
                 await asyncio.sleep(RETRY_DELAY * (attempt + 1))
-        except httpx.HTTPStatusError as e:
-            if e.response.status_code >= 500:
-                last_error = e
-                if attempt < MAX_RETRIES - 1:
-                    await asyncio.sleep(RETRY_DELAY * (attempt + 1))
-            else:
+        except Exception as e:
+            # Re-raise non-retryable errors immediately
+            if attempt == 0:
                 raise
-        except json.JSONDecodeError as e:
             last_error = e
             if attempt < MAX_RETRIES - 1:
                 await asyncio.sleep(RETRY_DELAY * (attempt + 1))

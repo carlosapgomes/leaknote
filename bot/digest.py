@@ -1,10 +1,10 @@
 """Daily digest generation."""
 
-import httpx
 from datetime import datetime
 from pathlib import Path
 
 from config import Config
+from llm import create_summarizer_client
 from queries import (
     get_active_projects,
     get_blocked_projects,
@@ -86,27 +86,14 @@ async def generate_daily_digest() -> str:
 
     data_text = "\n\n".join(data_sections)
 
-    # Call Claude for summarization
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        response = await client.post(
-            Config.CLAUDE_API_URL,
-            headers={
-                "x-api-key": Config.CLAUDE_API_KEY,
-                "anthropic-version": "2023-06-01",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": Config.CLAUDE_MODEL,
-                "max_tokens": 500,
-                "messages": [
-                    {"role": "user", "content": DAILY_DIGEST_PROMPT + data_text}
-                ],
-            },
-        )
-        response.raise_for_status()
-
-        result = response.json()
-        return result["content"][0]["text"]
+    # Call LLM for summarization
+    llm = create_summarizer_client()
+    return await llm.complete(
+        user_prompt=DAILY_DIGEST_PROMPT + data_text,
+        model=Config.SUMMARIZER_LLM_MODEL,
+        temperature=Config.SUMMARIZER_LLM_TEMPERATURE,
+        max_tokens=500,
+    )
 
 
 def format_digest_date() -> str:
