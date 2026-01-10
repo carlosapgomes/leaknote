@@ -3,7 +3,7 @@
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 
-from db import get_pool
+from bot.db import get_pool
 
 
 # =============================================================================
@@ -326,7 +326,7 @@ async def search_full_text(
         },
         "decisions": {
             "search_columns": "title || ' ' || decision || ' ' || COALESCE(rationale, '') || ' ' || COALESCE(context, '')",
-            "display_columns": "id, title, decision, rationale, created_at",
+            "display_columns": "id, title, decision, rationale, context, created_at",
         },
         "howtos": {
             "search_columns": "title || ' ' || content",
