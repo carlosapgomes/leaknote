@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # ===================
+  # PostgreSQL - shared by Dendrite and Leaknote
+  # ===================
+  postgres:
+    image: postgres:16-alpine
+    container_name: leaknote-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+      - ./schema.sql:/docker-entrypoint-initdb.d/02-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - leaknote-net
+
+  # ===================
+  # Dendrite Matrix Server
+  # ===================
+  dendrite:
+    image: matrixdotorg/dendrite-monolith:latest
+    container_name: leaknote-dendrite
+    hostname: dendrite
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8008:8008"   # Client-Server API
+      - "8448:8448"   # Federation (optional)
+    volumes:
+      - ./dendrite/config:/etc/dendrite
+      - ./dendrite/media:/var/dendrite/media
+      - ./dendrite/jetstream:/var/dendrite/jetstream
+      - ./dendrite/searchindex:/var/dendrite/searchindex
+    networks:
+      - leaknote-net
+
+  # ===================
+  # Leaknote Bot
+  # ===================
+  leaknote:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: leaknote-bot
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dendrite:
+        condition: service_started
+    environment:
+      # Matrix - points to local Dendrite
+      MATRIX_HOMESERVER: http://dendrite:8008
+      MATRIX_USER_ID: ${MATRIX_USER_ID:-@leaknote:localhost}
+      MATRIX_PASSWORD: ${MATRIX_PASSWORD:?MATRIX_PASSWORD required}
+      MATRIX_INBOX_ROOM: ${MATRIX_INBOX_ROOM:-#leaknote-inbox:localhost}
+
+      # Database
+      DATABASE_URL: postgresql://leaknote:${LEAKNOTE_DB_PASSWORD:-leaknote}@postgres:5432/leaknote
+
+      # LLM APIs
+      GLM_API_URL: ${GLM_API_URL:?GLM_API_URL required}
+      GLM_API_KEY: ${GLM_API_KEY:?GLM_API_KEY required}
+      GLM_MODEL: ${GLM_MODEL:-glm-4}
+
+      CLAUDE_API_URL: ${CLAUDE_API_URL:-https://api.anthropic.com/v1/messages}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY:?CLAUDE_API_KEY required}
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-sonnet-4-20250514}
+
+      # Settings
+      CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.6}
+      DIGEST_TARGET_USER: ${DIGEST_TARGET_USER:?DIGEST_TARGET_USER required}
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - leaknote-net
+
+networks:
+  leaknote-net:
+    driver: bridge

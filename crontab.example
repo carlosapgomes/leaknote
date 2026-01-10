@@ -1,0 +1,22 @@
+# Leaknote Cron Jobs
+# ==================
+#
+# Copy these entries to your crontab:
+#   crontab -e
+#
+# Replace /path/to/leaknote with your actual installation path
+
+# Daily digest at 6:00 AM
+0 6 * * * /path/to/leaknote/cron/daily_digest.sh
+
+# Weekly review Sunday at 4:00 PM
+0 16 * * 0 /path/to/leaknote/cron/weekly_review.sh
+
+# Weekly maintenance Sunday at 11:00 PM
+0 23 * * 0 /path/to/leaknote/cron/maintenance.sh
+
+# Daily backup at 2:00 AM
+0 2 * * * /path/to/leaknote/cron/backup.sh
+
+# Health check every 5 minutes (logs to file)
+*/5 * * * * /path/to/leaknote/cron/health_check.sh >> /path/to/leaknote/logs/health.log 2>&1
