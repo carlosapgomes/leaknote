@@ -71,7 +71,7 @@ chmod +x setup.sh create-users.sh
 ./setup.sh
 ```
 
-This generates Dendrite keys, configuration, and initializes the database scripts.
+This generates Dendrite keys and configuration from templates, and prepares the database initialization script. Database passwords are read dynamically from `.env` at runtime (never written to files).
 
 ### 3. Start the stack
 

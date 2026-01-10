@@ -11,10 +11,10 @@ All configuration is done through environment variables in `.env`.
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=your-secure-admin-password
 
-# Leaknote database credentials
+# Leaknote database credentials (used by init-db.sh at runtime)
 LEAKNOTE_DB_PASSWORD=your-leaknote-db-password
 
-# Dendrite database credentials
+# Dendrite database credentials (used by init-db.sh at runtime)
 DENDRITE_DB_PASSWORD=your-dendrite-db-password
 ```
 
@@ -240,6 +240,14 @@ ORDER BY day;
 
 After running `setup.sh`, Dendrite config is at `dendrite/config/dendrite.yaml`.
 
+The config is generated from `dendrite/config/dendrite.yaml.template` using values from `.env`:
+
+- `MATRIX_SERVER_NAME` - Your Matrix domain
+- `DENDRITE_DB_PASSWORD` - Database password (from .env)
+- `DENDRITE_REGISTRATION_SECRET` - Registration secret (auto-generated if not set)
+
+**Security note:** The template file is safe to commit to git. The generated `dendrite.yaml` contains sensitive data and is excluded by `.gitignore`.
+
 Key settings:
 
 ```yaml
@@ -250,6 +258,7 @@ global:
 
 client_api:
   registration_disabled: true  # Set false to allow Element registration
+  registration_shared_secret: "auto-generated-or-set-in-env"
 ```
 
 ## Network Configuration
