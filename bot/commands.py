@@ -83,6 +83,17 @@ async def format_search_results(
     # Check if all results are from reference categories (no summarization)
     all_references = all(r.get("source_table") in REFERENCE_TABLES for r in results)
 
+    # Debug logging
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"format_search_results: query={query}, num_results={len(results)}, all_references={all_references}")
+    for r in results:
+        source = r.get("source_table", "unknown")
+        title = r.get("title", r.get("name", "N/A"))
+        content = r.get("content") or r.get("decision") or ""
+        content_len = len(content) if content else 0
+        logger.info(f"  - {source}: {title} (content length: {content_len} chars)")
+
     if all_references:
         # Return full content with fenced markdown formatting
         return _format_reference_results(query, results)
@@ -140,6 +151,9 @@ async def format_search_results(
 
 def _format_reference_results(query: str, results: List[Dict[str, Any]]) -> str:
     """Format reference results with full content and fenced markdown."""
+    import logging
+    logger = logging.getLogger(__name__)
+
     lines = [f"🔍 Results for: {query}\n"]
 
     for r in results:
@@ -155,17 +169,22 @@ def _format_reference_results(query: str, results: List[Dict[str, Any]]) -> str:
 
         elif source == "howtos":
             lines.append(f"## [HOWTO] {r['title']}\n")
-            lines.append(r['content'])
+            content = r['content']
+            # Don't wrap in code blocks - just return the raw content
+            # This preserves any markdown formatting in the original content
+            lines.append(content)
 
         elif source == "snippets":
             lines.append(f"## [SNIPPET] {r['title']}\n")
-            lines.append("```")
-            lines.append(r['content'])
-            lines.append("```")
+            content = r['content']
+            # Don't wrap in code blocks - just return the raw content
+            lines.append(content)
 
         lines.append("")  # Blank line between results
 
-    return "\n".join(lines)
+    result = "\n".join(lines)
+    logger.info(f"_format_reference_results: Formatted {len(results)} results, total length: {len(result)} chars")
+    return result
 
 
 def format_project_list(projects: List[Dict[str, Any]]) -> str:

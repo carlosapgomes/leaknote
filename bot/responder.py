@@ -147,6 +147,12 @@ async def send_message(
 ) -> str:
     """Send a generic message, optionally as a reply."""
 
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"send_message: Sending message of length {len(body)} chars")
+    logger.info(f"send_message: First 200 chars: {body[:200]}")
+    logger.info(f"send_message: Last 200 chars: {body[-200:]}")
+
     content = {
         "msgtype": "m.text",
         "body": body,
@@ -160,5 +166,7 @@ async def send_message(
         message_type="m.room.message",
         content=content,
     )
+
+    logger.info(f"send_message: Message sent successfully, event_id={response.event_id}")
 
     return response.event_id
