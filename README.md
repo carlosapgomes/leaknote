@@ -1,10 +1,10 @@
 # Leaknote
 
-A self-hosted "second brain" that captures your thoughts via Matrix, classifies them with LLMs, and surfaces relevant information through daily digests and on-demand retrieval.
+A self-hosted "second brain" that captures your thoughts via Telegram, classifies them with LLMs, and surfaces relevant information through daily digests and on-demand retrieval.
 
 ## Features
 
-- **Frictionless capture**: One Matrix channel, one message per thought
+- **Frictionless capture**: Direct messages to Telegram bot
 - **AI classification**: Automatically routes to people, projects, ideas, admin
 - **Reference storage**: Explicit prefixes for decisions, howtos, snippets
 - **Daily digest**: Morning briefing with top actions (06:00)
@@ -17,9 +17,8 @@ A self-hosted "second brain" that captures your thoughts via Matrix, classifies 
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Matrix (Dendrite)                                              │
-│  ├── #leaknote-inbox (capture)                                  │
-│  └── DM (digests, confirmations)                                │
+│  Telegram Bot API                                               │
+│  └── Direct Messages (capture, digests, confirmations)          │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -53,25 +52,32 @@ A self-hosted "second brain" that captures your thoughts via Matrix, classifies 
 
 - Docker and Docker Compose
 - API keys for GLM-4 (or similar) and Claude
+- Telegram Bot Token (from @BotFather)
+- Your Telegram User ID
 
-### 1. Clone and configure
+### 1. Create a Telegram Bot
+
+1. Message @BotFather on Telegram
+2. Use `/newbot` command and follow the prompts
+3. Save the bot token
+4. Get your Telegram user ID (message @userinfobot)
+
+### 2. Clone and setup
 
 ```bash
 git clone <repo-url> leaknote
 cd leaknote
 
-cp .env.example .env
-# Edit .env with your passwords and API keys
-```
-
-### 2. Run setup
-
-```bash
-chmod +x setup.sh create-users.sh
+# Run setup script (creates .env and directories)
+chmod +x setup.sh
 ./setup.sh
-```
 
-This generates Dendrite keys and configuration from templates, and prepares the database initialization script. Database passwords are read dynamically from `.env` at runtime (never written to files).
+# Edit .env with your:
+# - Database passwords
+# - API keys (GLM-4, Claude)
+# - Telegram bot token
+# - Telegram owner ID (your user ID)
+```
 
 ### 3. Start the stack
 
@@ -80,32 +86,16 @@ docker compose up -d
 docker compose ps  # Wait for all services to be healthy
 ```
 
-### 4. Create Matrix users
-
-```bash
-./create-users.sh
-```
-
-Creates the bot user and your personal user.
-
-### 5. Configure Matrix room
-
-1. Connect to Matrix with Element: `http://localhost:8008`
-2. Log in with your credentials
-3. Create a private room named `leaknote-inbox`
-4. Invite the bot user
-5. Restart the bot: `docker compose restart leaknote`
-
-### 6. Install cron jobs
+### 4. Install cron jobs
 
 ```bash
 crontab -e
 # Add entries from crontab.example
 ```
 
-### 7. Test it
+### 5. Test it
 
-Send a message to `#leaknote-inbox`:
+Send a direct message to your bot on Telegram:
 
 ```
 Met João at conference, works on EHR integration
@@ -123,10 +113,10 @@ Just type naturally - the AI classifies automatically:
 Met João at conference, works on EHR integration
 → Classified as: people
 
-Need to review nftables rules this week  
+Need to review nftables rules this week
 → Classified as: projects
 
-Could use Matrix reactions for quick triage
+Idea for quick triage with keyboard shortcuts
 → Classified as: ideas
 
 Renew domain by January 15
@@ -226,7 +216,7 @@ See [tests/README.md](tests/README.md) for detailed testing documentation.
 See [docs/configuration.md](docs/configuration.md) for:
 
 - Environment variables reference
-- Dendrite configuration
+- Telegram bot configuration
 - LLM model selection
 - Confidence threshold tuning
 
@@ -249,7 +239,7 @@ leaknote/
 │   ├── db.py               # Database operations
 │   ├── classifier.py       # LLM classification
 │   ├── router.py           # Message routing
-│   ├── responder.py        # Matrix responses
+│   ├── responder.py        # Telegram responses
 │   ├── commands.py         # Query commands
 │   ├── queries.py          # Database queries
 │   ├── digest.py           # Daily digest
@@ -285,8 +275,7 @@ leaknote/
 ├── requirements.txt
 ├── requirements-dev.txt    # Testing dependencies
 ├── pytest.ini              # Pytest configuration
-├── setup.sh
-├── create-users.sh
+├── setup.sh                # Initial setup script
 └── crontab.example
 ```
 

@@ -33,18 +33,6 @@ else
     echo "ERROR: Leaknote backup failed" >> "$LOG_FILE"
 fi
 
-# Backup Dendrite database
-DENDRITE_BACKUP="dendrite_$DATE.sql.gz"
-echo "Backing up Dendrite database..." >> "$LOG_FILE"
-docker exec leaknote-db pg_dump -U dendrite dendrite | gzip > "$BACKUP_DIR/$DENDRITE_BACKUP"
-
-if [ $? -eq 0 ]; then
-    BACKUP_SIZE=$(du -h "$BACKUP_DIR/$DENDRITE_BACKUP" | cut -f1)
-    echo "✓ Dendrite backup: $DENDRITE_BACKUP ($BACKUP_SIZE)" >> "$LOG_FILE"
-else
-    echo "ERROR: Dendrite backup failed" >> "$LOG_FILE"
-fi
-
 # Keep only last 30 days
 DELETED=$(find "$BACKUP_DIR" -name "*.sql.gz" -mtime +30 -delete -print | wc -l)
 if [ "$DELETED" -gt 0 ]; then

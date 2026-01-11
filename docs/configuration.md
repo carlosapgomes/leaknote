@@ -13,27 +13,31 @@ POSTGRES_PASSWORD=your-secure-admin-password
 
 # Leaknote database credentials (used by init-db.sh at runtime)
 LEAKNOTE_DB_PASSWORD=your-leaknote-db-password
-
-# Dendrite database credentials (used by init-db.sh at runtime)
-DENDRITE_DB_PASSWORD=your-dendrite-db-password
 ```
 
-### Matrix / Dendrite
+### Telegram
 
 ```bash
-# Your Matrix domain (used in user IDs like @user:domain)
-MATRIX_SERVER_NAME=localhost
+# Telegram bot token (from @BotFather)
+TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
 
-# Bot user credentials
-MATRIX_USER_ID=@leaknote:localhost
-MATRIX_PASSWORD=bot-password
-
-# Inbox room alias
-MATRIX_INBOX_ROOM=#leaknote-inbox:localhost
-
-# Your user ID (receives digests)
-DIGEST_TARGET_USER=@carlos:localhost
+# Your Telegram user ID (receives all messages and digests)
+# Get this from @userinfobot
+TELEGRAM_OWNER_ID=123456789
 ```
+
+**Getting your Telegram configuration:**
+
+1. Create a bot:
+   - Message @BotFather on Telegram
+   - Send `/newbot` and follow the prompts
+   - Save the bot token provided
+
+2. Get your user ID:
+   - Message @userinfobot on Telegram
+   - It will reply with your user ID
+
+**Security note:** Only the owner ID can interact with the bot. All messages from other users are ignored.
 
 ## LLM Configuration
 
@@ -236,50 +240,14 @@ ORDER BY day;
 | Clarification rate > 30% | Decrease threshold |
 | Target | <10% fix, <20% clarification |
 
-## Dendrite Configuration
+## Admin UI Configuration
 
-After running `setup.sh`, Dendrite config is at `dendrite/config/dendrite.yaml`.
-
-The config is generated from `dendrite/config/dendrite.yaml.template` using values from `.env`:
-
-- `MATRIX_SERVER_NAME` - Your Matrix domain
-- `DENDRITE_DB_PASSWORD` - Database password (from .env)
-- `DENDRITE_REGISTRATION_SECRET` - Registration secret (auto-generated if not set)
-
-**Security note:** The template file is safe to commit to git. The generated `dendrite.yaml` contains sensitive data and is excluded by `.gitignore`.
-
-Key settings:
-
-```yaml
-global:
-  server_name: localhost  # Must match MATRIX_SERVER_NAME
-  database:
-    connection_string: postgres://dendrite:password@postgres/dendrite?sslmode=disable
-
-client_api:
-  registration_disabled: true  # Set false to allow Element registration
-  registration_shared_secret: "auto-generated-or-set-in-env"
+```bash
+# Admin UI authentication
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your-secure-admin-password
 ```
 
-## Network Configuration
+The admin UI is accessible on port 8000 and requires HTTP Basic Auth.
 
-### Docker Internal Network
-
-| Service | Internal Hostname | Port |
-|---------|-------------------|------|
-| PostgreSQL | `postgres` | 5432 |
-| Dendrite | `dendrite` | 8008, 8448 |
-| Leaknote | `leaknote` | - |
-
-### External Access
-
-| Port | Service | Purpose |
-|------|---------|---------|
-| 8008 | Dendrite | Matrix client API |
-| 8448 | Dendrite | Federation (optional) |
-
-### Local Network Access
-
-1. Update `MATRIX_SERVER_NAME` to your server's IP
-2. Update `dendrite/config/dendrite.yaml` server_name
-3. Connect Element to `http://YOUR_IP:8008`
+**Security note:** The admin UI should only be exposed through Tailscale or a similar secure network. Do not expose it directly to the internet.

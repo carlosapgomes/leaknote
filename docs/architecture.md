@@ -16,7 +16,7 @@ Capture → Classify → Route → Store → Surface
    └────────── Feedback Loop ───────────┘
 ```
 
-1. **Capture**: You throw a thought at the Matrix channel
+1. **Capture**: You throw a thought at the Telegram bot
 2. **Classify**: LLM determines what type of thought it is
 3. **Route**: System decides which table to store it in
 4. **Store**: Record is created with extracted fields
@@ -26,7 +26,7 @@ Capture → Classify → Route → Store → Surface
 
 | Block | Purpose | Implementation |
 |-------|---------|----------------|
-| **Dropbox** | Frictionless capture point | Matrix channel `#leaknote-inbox` |
+| **Dropbox** | Frictionless capture point | Telegram direct messages |
 | **Sorter** | AI classification | GLM-4 with classification prompt |
 | **Form** | Consistent schema per category | PostgreSQL tables with defined fields |
 | **Filing Cabinet** | Structured storage | PostgreSQL database |
@@ -77,7 +77,7 @@ Met João at conference, works on EHR integration
 Need to review papercage nftables rules this week
 → LLM detects: task with multiple steps → routes to projects
 
-Could use Matrix reactions for quick triage
+Idea for quick triage with keyboard shortcuts
 → LLM detects: possibility to explore → routes to ideas
 
 Renew domain carloszan.com by January 15
@@ -171,7 +171,7 @@ Query commands for instant access:
 
 ## Design Principles
 
-1. **One human behavior**: Capture to Matrix, nothing else required
+1. **One human behavior**: Capture via Telegram, nothing else required
 2. **Separate memory/compute/interface**: Swap any layer independently
 3. **Prompts as APIs**: Fixed input/output schema, JSON only, no surprises
 4. **Trust through transparency**: Audit log, confidence scores, easy corrections

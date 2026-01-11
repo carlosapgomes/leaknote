@@ -17,20 +17,9 @@ if ! docker ps --format '{{.Names}}' | grep -q '^leaknote-db$'; then
     UNHEALTHY=1
 fi
 
-if ! docker ps --format '{{.Names}}' | grep -q '^leaknote-dendrite$'; then
-    echo "$(date) UNHEALTHY: leaknote-dendrite container not running"
-    UNHEALTHY=1
-fi
-
 # Check postgres
 if ! docker exec leaknote-db pg_isready -U postgres > /dev/null 2>&1; then
     echo "$(date) UNHEALTHY: PostgreSQL not ready"
-    UNHEALTHY=1
-fi
-
-# Check Dendrite API
-if ! curl -sf http://localhost:8008/_matrix/client/versions > /dev/null 2>&1; then
-    echo "$(date) UNHEALTHY: Dendrite API not responding"
     UNHEALTHY=1
 fi
 

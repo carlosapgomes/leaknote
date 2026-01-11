@@ -52,7 +52,7 @@ class LeaknoteBot:
         """Get the help text for commands."""
         return (
             "Leaknote bot is running.\n\n"
-            "Send messages here or in the inbox channel to capture thoughts.\n"
+            "Send messages here to capture thoughts.\n"
             "Available commands:\n"
             "• ?recall <query> - Search decisions, howtos, snippets\n"
             "• ?search <query> - Search all categories\n"

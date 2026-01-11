@@ -13,7 +13,6 @@ docker compose down
 
 # Restart specific service
 docker compose restart leaknote
-docker compose restart dendrite
 
 # View status
 docker compose ps
@@ -27,7 +26,6 @@ docker compose logs -f
 
 # Specific service
 docker compose logs -f leaknote
-docker compose logs -f dendrite
 docker compose logs -f postgres
 
 # Last 100 lines
@@ -95,9 +93,8 @@ logs/
 The `cron/backup.sh` script runs daily at 02:00 and:
 
 1. Backs up Leaknote database
-2. Backs up Dendrite database
-3. Compresses with gzip
-4. Retains 30 days of backups
+2. Compresses with gzip
+3. Retains 30 days of backups
 
 Backups are stored in `data/backups/`.
 
@@ -108,7 +105,7 @@ Backups are stored in `data/backups/`.
 ls -la data/backups/
 ```
 
-### Restore Leaknote Database
+### Restore Database
 
 ```bash
 # Stop the bot first
@@ -122,29 +119,14 @@ gunzip -c data/backups/leaknote_20260110_020000.sql.gz | \
 docker compose start leaknote
 ```
 
-### Restore Dendrite Database
-
-```bash
-# Stop Dendrite first
-docker compose stop dendrite
-
-# Restore
-gunzip -c data/backups/dendrite_20260110_020000.sql.gz | \
-    docker exec -i leaknote-db psql -U dendrite -d dendrite
-
-# Restart
-docker compose start dendrite
-```
-
 ### Full Disaster Recovery
 
 1. Fresh server with Docker installed
 2. Clone the repository
 3. Copy `.env` from backup
-4. Copy `dendrite/config/` from backup (contains signing key!)
-5. Run `docker compose up -d postgres` (start only postgres)
-6. Restore both databases
-7. Run `docker compose up -d` (start remaining services)
+4. Run `docker compose up -d postgres` (start only postgres)
+5. Restore database
+6. Run `docker compose up -d` (start remaining services)
 
 ## Maintenance Tasks
 
@@ -190,31 +172,6 @@ DELETE FROM admin WHERE status = 'done' AND updated_at < NOW() - INTERVAL '60 da
 DELETE FROM pending_clarifications WHERE created_at < NOW() - INTERVAL '7 days';
 ```
 
-## Matrix Administration
-
-### Create New User
-
-```bash
-docker exec -it dendrite-matrix /usr/bin/create-account \
-    -config /etc/dendrite/dendrite.yaml \
-    -username newuser \
-    -password "secure-password"
-```
-
-### Create Admin User
-
-```bash
-docker exec -it dendrite-matrix /usr/bin/create-account \
-    -config /etc/dendrite/dendrite.yaml \
-    -username admin \
-    -password "secure-password" \
-    -admin
-```
-
-### Reset User Password
-
-Currently requires direct database access or user self-service.
-
 ## Troubleshooting
 
 ### Bot Not Responding
@@ -229,10 +186,10 @@ Currently requires direct database access or user self-service.
    docker compose logs --tail 50 leaknote
    ```
 
-3. Verify Matrix connection:
-   ```bash
-   curl http://localhost:8008/_matrix/client/versions
-   ```
+3. Verify Telegram configuration:
+   - Check `TELEGRAM_BOT_TOKEN` is correct
+   - Check `TELEGRAM_OWNER_ID` matches your user ID
+   - Try sending `/start` to the bot
 
 4. Restart the bot:
    ```bash
@@ -251,9 +208,9 @@ Currently requires direct database access or user self-service.
    docker exec leaknote-bot python scripts/daily_digest.py
    ```
 
-3. Verify `DIGEST_TARGET_USER` is correct in `.env`
+3. Verify `TELEGRAM_OWNER_ID` is correct in `.env`
 
-4. Check if bot can DM your user (room must exist)
+4. Check bot logs for Telegram API errors
 
 ### Classification Errors
 
@@ -293,28 +250,6 @@ Currently requires direct database access or user self-service.
    docker compose logs postgres
    ```
 
-### Dendrite Issues
-
-1. Check container status:
-   ```bash
-   docker compose ps dendrite
-   ```
-
-2. Check logs:
-   ```bash
-   docker compose logs dendrite
-   ```
-
-3. Verify config:
-   ```bash
-   cat dendrite/config/dendrite.yaml | grep -A5 "database:"
-   ```
-
-4. Test client API:
-   ```bash
-   curl http://localhost:8008/_matrix/client/versions
-   ```
-
 ### Out of Disk Space
 
 1. Check disk usage:
@@ -331,12 +266,6 @@ Currently requires direct database access or user self-service.
 3. Vacuum database:
    ```bash
    docker exec leaknote-db psql -U postgres -c "VACUUM FULL"
-   ```
-
-4. Clean up Dendrite media (if large):
-   ```bash
-   du -sh dendrite/media/
-   # Consider implementing media retention policy
    ```
 
 ## Restart Procedure
@@ -362,7 +291,7 @@ The `cron/health_check.sh` script checks:
 
 - All containers running
 - PostgreSQL responding
-- Dendrite API responding
+- Telegram bot connection
 - Bot internal health
 
 ### Setting Up Alerts

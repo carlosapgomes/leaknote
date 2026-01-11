@@ -9,6 +9,5 @@ htmlcov/
 *.egg-info/
 .env
 credentials.json
-dendrite/
 store/
 data/
