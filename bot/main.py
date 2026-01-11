@@ -48,14 +48,9 @@ class LeaknoteBot:
     def __init__(self):
         self.application = Application.builder().token(Config.TELEGRAM_BOT_TOKEN).build()
 
-    async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Handle /start command."""
-        # Security check - only owner can use /start
-        if update.effective_user.id != Config.TELEGRAM_OWNER_ID:
-            logger.warning(f"Unauthorized /start attempt from user {update.effective_user.id}")
-            return
-
-        await update.message.reply_text(
+    def _get_help_text(self) -> str:
+        """Get the help text for commands."""
+        return (
             "Leaknote bot is running.\n\n"
             "Send messages here or in the inbox channel to capture thoughts.\n"
             "Available commands:\n"
@@ -64,8 +59,27 @@ class LeaknoteBot:
             "• ?people <query> - Search people\n"
             "• ?projects [status] - List projects\n"
             "• ?ideas - List recent ideas\n"
-            "• ?admin [due] - List admin tasks"
+            "• ?admin [due] - List admin tasks\n"
+            "• fix: <category> - Reclassify a message (reply to it)"
         )
+
+    async def start_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /start command."""
+        # Security check - only owner can use /start
+        if update.effective_user.id != Config.TELEGRAM_OWNER_ID:
+            logger.warning(f"Unauthorized /start attempt from user {update.effective_user.id}")
+            return
+
+        await update.message.reply_text(self._get_help_text())
+
+    async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /help command."""
+        # Security check - only owner can use /help
+        if update.effective_user.id != Config.TELEGRAM_OWNER_ID:
+            logger.warning(f"Unauthorized /help attempt from user {update.effective_user.id}")
+            return
+
+        await update.message.reply_text(self._get_help_text())
 
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle all text messages."""
@@ -340,6 +354,7 @@ class LeaknoteBot:
         """Start the bot."""
         # Add handlers
         self.application.add_handler(CommandHandler("start", self.start_command))
+        self.application.add_handler(CommandHandler("help", self.help_command))
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
 
         # Start polling
