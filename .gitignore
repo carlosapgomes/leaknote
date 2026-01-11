@@ -11,3 +11,4 @@ htmlcov/
 credentials.json
 dendrite/
 store/
+data/
