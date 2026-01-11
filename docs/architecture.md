@@ -27,7 +27,7 @@ Capture → Classify → Route → Store → Surface
 | Block | Purpose | Implementation |
 |-------|---------|----------------|
 | **Dropbox** | Frictionless capture point | Telegram direct messages |
-| **Sorter** | AI classification | GLM-4 with classification prompt |
+| **Sorter** | AI classification | LLM with classification prompt |
 | **Form** | Consistent schema per category | PostgreSQL tables with defined fields |
 | **Filing Cabinet** | Structured storage | PostgreSQL database |
 | **Receipt** | Audit trail | `inbox_log` table |

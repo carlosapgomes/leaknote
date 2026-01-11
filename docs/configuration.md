@@ -53,7 +53,7 @@ Leaknote uses two LLM clients with different roles:
 Both clients support two provider types:
 
 - `openai` - Works with any OpenAI-compatible API
-- `anthropic` - Native Anthropic API (for Claude-specific features)
+- `anthropic` - Native Anthropic API
 
 ### Configuration Pattern
 
@@ -144,7 +144,7 @@ CLASSIFY_API_URL=https://api.z.ai/v1
 CLASSIFY_API_KEY=your-zai-key
 CLASSIFY_MODEL=glm-4
 
-# Summary: Native Claude API
+# Summary: Native Anthropic API
 SUMMARY_PROVIDER=anthropic
 SUMMARY_API_URL=https://api.anthropic.com/v1/messages
 SUMMARY_API_KEY=your-anthropic-key

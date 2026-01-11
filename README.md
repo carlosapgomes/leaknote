@@ -24,9 +24,9 @@ A self-hosted "second brain" that captures your thoughts via Telegram, classifie
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Leaknote Bot (Python)                                          │
-│  ├── Classifier (GLM-4 for routing)                             │
+│  ├── Classifier (LLM for routing)                               │
 │  ├── Router (prefix detection + confidence check)               │
-│  └── Surfacer (Claude for summaries)                            │
+│  └── Surfacer (LLM for summaries)                               │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -51,7 +51,7 @@ A self-hosted "second brain" that captures your thoughts via Telegram, classifie
 ### Prerequisites
 
 - Docker and Docker Compose
-- API keys for GLM-4 (or similar) and Claude
+- LLM API keys (for classification and summaries)
 - Telegram Bot Token (from @BotFather)
 - Your Telegram User ID
 
@@ -74,7 +74,7 @@ chmod +x setup.sh
 
 # Edit .env with your:
 # - Database passwords
-# - API keys (GLM-4, Claude)
+# - LLM API keys
 # - Telegram bot token
 # - Telegram owner ID (your user ID)
 ```
