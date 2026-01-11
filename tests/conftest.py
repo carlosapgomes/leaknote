@@ -7,11 +7,10 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-# Set test environment variables
-os.environ["MATRIX_HOMESERVER"] = "http://test:8008"
-os.environ["MATRIX_USER_ID"] = "@bot:test"
-os.environ["MATRIX_PASSWORD"] = "test"
-os.environ["MATRIX_INBOX_ROOM"] = "#test:localhost"
+# Set test environment variables for Telegram
+os.environ["TELEGRAM_BOT_TOKEN"] = "test_token_12345"
+os.environ["TELEGRAM_OWNER_ID"] = "123456789"
+os.environ["TELEGRAM_INBOX_CHAT_ID"] = "-1001234567890"  # Optional
 os.environ["DATABASE_URL"] = "postgresql://test:test@localhost:5432/test"
 os.environ["CLASSIFY_API_URL"] = "http://test/v1"
 os.environ["CLASSIFY_API_KEY"] = "test"
@@ -19,7 +18,6 @@ os.environ["CLASSIFY_MODEL"] = "gpt-4o-mini"
 os.environ["SUMMARY_API_URL"] = "http://test/v1"
 os.environ["SUMMARY_API_KEY"] = "test"
 os.environ["SUMMARY_MODEL"] = "claude-sonnet-4"
-os.environ["DIGEST_TARGET_USER"] = "@user:test"
 
 
 @pytest.fixture
@@ -107,8 +105,8 @@ def sample_inbox_log():
         "record_id": "test-record-123",
         "confidence": 0.8,
         "status": "filed",
-        "matrix_event_id": "$test_event_123",
-        "matrix_room_id": "!test:localhost",
+        "telegram_message_id": "123",
+        "telegram_chat_id": "-1001234567890",
         "created_at": "2026-01-10T10:00:00",
     }
 
@@ -119,8 +117,8 @@ def sample_pending_clarification():
     return {
         "id": 1,
         "inbox_log_id": 1,
-        "matrix_event_id": "$clarification_event_123",
-        "matrix_room_id": "!test:localhost",
+        "telegram_message_id": "456",
+        "telegram_chat_id": "-1001234567890",
         "suggested_category": "ideas",
         "raw_text": "ambiguous message",
         "created_at": "2026-01-10T10:00:00",
@@ -128,37 +126,26 @@ def sample_pending_clarification():
 
 
 @pytest.fixture
-def sample_matrix_event():
-    """Sample Matrix message event."""
-    event = MagicMock()
-    event.sender = "@user:test"
-    event.event_id = "$test_event_123"
-    event.body = "test message"
-    event.source = {
-        "content": {
-            "body": "test message",
-            "msgtype": "m.text",
-        }
-    }
-    return event
+def sample_telegram_message():
+    """Sample Telegram message update."""
+    update = MagicMock()
+    update.effective_user.id = 123456789
+    update.effective_user.username = "testuser"
+    update.message.message_id = 123
+    update.message.chat_id = -1001234567890
+    update.message.text = "test message"
+    update.message.reply_to_message = None
+    return update
 
 
 @pytest.fixture
-def sample_matrix_reply_event():
-    """Sample Matrix reply event."""
-    event = MagicMock()
-    event.sender = "@user:test"
-    event.event_id = "$reply_event_123"
-    event.body = "> <@user:test> original message\n\nfix: project"
-    event.source = {
-        "content": {
-            "body": "> <@user:test> original message\n\nfix: project",
-            "msgtype": "m.text",
-            "m.relates_to": {
-                "m.in_reply_to": {
-                    "event_id": "$test_event_123"
-                }
-            }
-        }
-    }
-    return event
+def sample_telegram_dm():
+    """Sample Telegram DM update (private chat)."""
+    update = MagicMock()
+    update.effective_user.id = 123456789
+    update.effective_user.username = "testuser"
+    update.message.message_id = 456
+    update.message.chat_id = 123456789  # DM chat ID equals user ID
+    update.message.text = "decision: This is a test decision"
+    update.message.reply_to_message = None
+    return update

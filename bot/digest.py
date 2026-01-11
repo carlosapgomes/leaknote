@@ -3,7 +3,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from config import Config
+from bot.config import Config
 from queries import (
     get_active_projects,
     get_blocked_projects,

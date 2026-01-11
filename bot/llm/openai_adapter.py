@@ -100,8 +100,11 @@ class OpenAIAdapter(LLMClient):
         # GPT-5 and o-series models have restrictions:
         # - Use max_completion_tokens instead of max_tokens
         # - Only support temperature=1 (default), so omit the parameter
+        # - Use reasoning models that consume tokens for thinking, so we need more tokens
         if is_gpt5_or_o_model:
-            body["max_completion_tokens"] = max_tokens
+            # Reasoning models need significantly more tokens since they use
+            # reasoning tokens + completion tokens. Set a higher limit.
+            body["max_completion_tokens"] = max(2000, max_tokens * 4)
             # Only set temperature if it's 1 (the default)
             if temperature != 1.0:
                 logger.warning(

@@ -3,7 +3,7 @@
 import re
 from typing import Optional, Tuple
 
-from db import (
+from bot.db import (
     get_inbox_log_by_event,
     get_record,
     delete_record,

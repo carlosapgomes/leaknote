@@ -3,7 +3,7 @@
 from typing import Optional
 from pathlib import Path
 
-from config import Config
+from bot.config import Config
 
 # Load classification prompt from file
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"

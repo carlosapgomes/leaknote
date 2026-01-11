@@ -21,8 +21,8 @@ class TestMessageRouting:
         with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="idea: Build automated test suite",
-                matrix_event_id="$test_event_123",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_123",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "ideas"
@@ -42,8 +42,8 @@ class TestMessageRouting:
         with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="project: Test automation framework",
-                matrix_event_id="$test_event_124",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_124",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "projects"
@@ -59,8 +59,8 @@ class TestMessageRouting:
         with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="person: John Doe - engineer at Acme",
-                matrix_event_id="$test_event_125",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_125",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "people"
@@ -76,8 +76,8 @@ class TestMessageRouting:
         with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="howto: Deploy → docker build && docker push",
-                matrix_event_id="$test_event_126",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_126",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "howtos"
@@ -93,8 +93,8 @@ class TestMessageRouting:
         with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="snippet: Git rebase → git rebase -i HEAD~3",
-                matrix_event_id="$test_event_127",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_127",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "snippets"
@@ -110,8 +110,8 @@ class TestMessageRouting:
         with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="decision: Use pytest because it has great async support",
-                matrix_event_id="$test_event_128",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_128",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "decisions"
@@ -127,8 +127,8 @@ class TestMessageRouting:
         with patch("db.get_pool", return_value=mock_db_pool):
             category, record_id, confidence, status = await route_message(
                 text="admin: File taxes by April 15",
-                matrix_event_id="$test_event_129",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_129",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "admin"
@@ -152,8 +152,8 @@ class TestMessageRouting:
         ):
             category, record_id, confidence, status = await route_message(
                 text="I should build automated tests",
-                matrix_event_id="$test_event_130",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_130",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "ideas"
@@ -187,8 +187,8 @@ class TestMessageRouting:
         ):
             category, record_id, confidence, status = await route_message(
                 text="xyz",
-                matrix_event_id="$test_event_131",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_131",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category == "ideas"
@@ -212,8 +212,8 @@ class TestMessageRouting:
         ):
             category, record_id, confidence, status = await route_message(
                 text="Test message",
-                matrix_event_id="$test_event_132",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_132",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category is None
@@ -243,8 +243,8 @@ class TestMessageRouting:
         ):
             category, record_id, confidence, status = await route_message(
                 text="Test message",
-                matrix_event_id="$test_event_133",
-                matrix_room_id="!test:localhost",
+                telegram_message_id="$test_event_133",
+                telegram_chat_id="!test:localhost",
             )
 
             assert category is None

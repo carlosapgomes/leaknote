@@ -3,7 +3,7 @@
 import asyncpg
 from typing import Optional, Dict, Any, List
 from datetime import date, datetime
-from config import Config
+from bot.config import Config
 
 _pool: Optional[asyncpg.Pool] = None
 
@@ -111,8 +111,8 @@ async def insert_inbox_log(
     record_id: Optional[str],
     confidence: Optional[float],
     status: str,
-    matrix_event_id: str,
-    matrix_room_id: str,
+    telegram_message_id: str,
+    telegram_chat_id: str,
 ) -> str:
     """Log an inbox entry."""
     return await insert_record(
@@ -123,8 +123,8 @@ async def insert_inbox_log(
             "record_id": record_id,
             "confidence": confidence,
             "status": status,
-            "matrix_event_id": matrix_event_id,
-            "matrix_room_id": matrix_room_id,
+            "telegram_message_id": telegram_message_id,
+            "telegram_chat_id": telegram_chat_id,
         },
     )
 
@@ -143,13 +143,13 @@ async def update_inbox_log(log_id: str, data: dict) -> bool:
         return result == "UPDATE 1"
 
 
-async def get_inbox_log_by_event(matrix_event_id: str) -> Optional[Dict[str, Any]]:
-    """Get inbox log by Matrix event ID."""
+async def get_inbox_log_by_event(telegram_message_id: str) -> Optional[Dict[str, Any]]:
+    """Get inbox log by Telegram message ID."""
     pool = await get_pool()
 
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT * FROM inbox_log WHERE matrix_event_id = $1", matrix_event_id
+            "SELECT * FROM inbox_log WHERE telegram_message_id = $1", telegram_message_id
         )
         return dict(row) if row else None
 
@@ -161,8 +161,8 @@ async def get_inbox_log_by_event(matrix_event_id: str) -> Optional[Dict[str, Any
 
 async def insert_pending_clarification(
     inbox_log_id: str,
-    matrix_event_id: str,
-    matrix_room_id: str,
+    telegram_message_id: str,
+    telegram_chat_id: str,
     suggested_category: Optional[str],
 ) -> str:
     """Create a pending clarification entry."""
@@ -170,15 +170,15 @@ async def insert_pending_clarification(
         "pending_clarifications",
         {
             "inbox_log_id": inbox_log_id,
-            "matrix_event_id": matrix_event_id,
-            "matrix_room_id": matrix_room_id,
+            "telegram_message_id": telegram_message_id,
+            "telegram_chat_id": telegram_chat_id,
             "suggested_category": suggested_category,
         },
     )
 
 
-async def get_pending_by_reply_to(original_event_id: str) -> Optional[Dict[str, Any]]:
-    """Get pending clarification by the original event it's replying to."""
+async def get_pending_by_reply_to(original_message_id: str) -> Optional[Dict[str, Any]]:
+    """Get pending clarification by the original message it's replying to."""
     pool = await get_pool()
 
     async with pool.acquire() as conn:
@@ -187,9 +187,9 @@ async def get_pending_by_reply_to(original_event_id: str) -> Optional[Dict[str, 
             SELECT pc.*, il.raw_text
             FROM pending_clarifications pc
             JOIN inbox_log il ON pc.inbox_log_id = il.id
-            WHERE pc.matrix_event_id = $1
+            WHERE pc.telegram_message_id = $1
             """,
-            original_event_id,
+            original_message_id,
         )
         return dict(row) if row else None
 
