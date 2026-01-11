@@ -1,6 +1,8 @@
 -- Leaknote Database Schema
 -- Run against the leaknote database
 
+\c leaknote
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -94,16 +96,16 @@ CREATE TABLE inbox_log (
     record_id UUID,
     confidence REAL,
     status TEXT DEFAULT 'filed' CHECK (status IN ('filed', 'needs_review', 'fixed')),
-    matrix_event_id TEXT NOT NULL,
-    matrix_room_id TEXT NOT NULL,
+    telegram_message_id TEXT NOT NULL,
+    telegram_chat_id TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE TABLE pending_clarifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     inbox_log_id UUID REFERENCES inbox_log(id) ON DELETE CASCADE,
-    matrix_event_id TEXT NOT NULL,
-    matrix_room_id TEXT NOT NULL,
+    telegram_message_id TEXT NOT NULL,
+    telegram_chat_id TEXT NOT NULL,
     suggested_category TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -126,5 +128,16 @@ CREATE INDEX idx_projects_status ON projects(status);
 CREATE INDEX idx_admin_status ON admin(status);
 CREATE INDEX idx_admin_due_date ON admin(due_date);
 CREATE INDEX idx_inbox_log_status ON inbox_log(status);
-CREATE INDEX idx_inbox_log_event_id ON inbox_log(matrix_event_id);
-CREATE INDEX idx_pending_event_id ON pending_clarifications(matrix_event_id);
+CREATE INDEX idx_inbox_log_telegram_message ON inbox_log(telegram_message_id);
+CREATE INDEX idx_pending_telegram_message ON pending_clarifications(telegram_message_id);
+
+-- =============================================================================
+-- Permissions
+-- =============================================================================
+-- Grant permissions to leaknote user
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO leaknote;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO leaknote;
+
+-- Set default privileges for future tables
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO leaknote;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO leaknote;

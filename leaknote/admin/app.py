@@ -7,8 +7,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from bot.db import get_pool, close_pool
-from admin.dependencies import get_current_admin
-from admin import routes
+from leaknote.admin.dependencies import get_current_admin
+from leaknote.admin import routes
 
 
 @asynccontextmanager

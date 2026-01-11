@@ -119,7 +119,7 @@ TABLE_CONFIGS = {
     "pending_clarifications": {
         "display_name": "Pending Clarifications",
         "fields": [],
-        "list_columns": ["matrix_event_id", "suggested_category", "created_at"],
+        "list_columns": ["telegram_message_id", "suggested_category", "created_at"],
         "is_markdown": False,
     },
 }

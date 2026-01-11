@@ -17,7 +17,7 @@ from bot.queries import (
     get_people_with_followups,
     get_recent_ideas,
 )
-from admin.dependencies import get_db_pool, get_table_config, VALID_TABLES
+from leaknote.admin.dependencies import get_db_pool, get_table_config, VALID_TABLES
 
 router = APIRouter()
 templates = Jinja2Templates(directory="leaknote/admin/templates")

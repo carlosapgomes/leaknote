@@ -1,52 +1,47 @@
-"""Matrix message response helpers."""
+"""Telegram message response helpers."""
 
 from typing import Optional
-from nio import AsyncClient
+from telegram import Bot
 
 
 async def send_confirmation(
-    client: AsyncClient,
-    room_id: str,
-    reply_to_event_id: str,
+    bot: Bot,
+    chat_id: int,
+    reply_to_message_id: int,
     category: str,
     confidence: float,
     extracted_name: str,
-) -> str:
-    """Send a confirmation message as a thread reply."""
-
+) -> int:
+    """Send a confirmation message as a reply."""
     confidence_pct = int(confidence * 100)
 
-    content = {
-        "msgtype": "m.text",
-        "body": (
-            f"✓ Filed as {category}: \"{extracted_name}\"\n"
-            f"Confidence: {confidence_pct}%\n"
-            f"Reply `fix: <category>` if wrong"
-        ),
-        "m.relates_to": {"m.in_reply_to": {"event_id": reply_to_event_id}},
-    }
-
-    response = await client.room_send(
-        room_id=room_id,
-        message_type="m.room.message",
-        content=content,
+    text = (
+        f"✓ Filed as {category}: \"{extracted_name}\"\n"
+        f"Confidence: {confidence_pct}%\n"
+        f"Reply `fix: <category>` if wrong"
     )
 
-    return response.event_id
+    message = await bot.send_message(
+        chat_id=chat_id,
+        text=text,
+        reply_to_message_id=reply_to_message_id,
+    )
+
+    return message.message_id
 
 
 async def send_clarification_request(
-    client: AsyncClient,
-    room_id: str,
-    reply_to_event_id: str,
+    bot: Bot,
+    chat_id: int,
+    reply_to_message_id: int,
     suggested_category: Optional[str],
     confidence: Optional[float],
-) -> str:
+) -> int:
     """Ask for clarification when confidence is low."""
 
     if suggested_category and confidence:
         confidence_pct = int(confidence * 100)
-        body = (
+        text = (
             f"🤔 Not sure about this one.\n"
             f"Best guess: {suggested_category} ({confidence_pct}% confident)\n\n"
             f"Reply with one of:\n"
@@ -60,7 +55,7 @@ async def send_clarification_request(
             f"• `skip` - to ignore"
         )
     else:
-        body = (
+        text = (
             f"❓ I couldn't classify this.\n\n"
             f"Reply with one of:\n"
             f"• `person:` - if about a person\n"
@@ -73,100 +68,76 @@ async def send_clarification_request(
             f"• `skip` - to ignore"
         )
 
-    content = {
-        "msgtype": "m.text",
-        "body": body,
-        "m.relates_to": {"m.in_reply_to": {"event_id": reply_to_event_id}},
-    }
-
-    response = await client.room_send(
-        room_id=room_id,
-        message_type="m.room.message",
-        content=content,
+    message = await bot.send_message(
+        chat_id=chat_id,
+        text=text,
+        reply_to_message_id=reply_to_message_id,
     )
 
-    return response.event_id
+    return message.message_id
 
 
 async def send_fix_confirmation(
-    client: AsyncClient,
-    room_id: str,
-    reply_to_event_id: str,
+    bot: Bot,
+    chat_id: int,
+    reply_to_message_id: int,
     old_category: str,
     new_category: str,
     extracted_name: str,
-) -> str:
+) -> int:
     """Confirm a fix was applied."""
 
-    content = {
-        "msgtype": "m.text",
-        "body": (
-            f"✓ Fixed: moved from {old_category} → {new_category}\n"
-            f"Entry: \"{extracted_name}\""
-        ),
-        "m.relates_to": {"m.in_reply_to": {"event_id": reply_to_event_id}},
-    }
-
-    response = await client.room_send(
-        room_id=room_id,
-        message_type="m.room.message",
-        content=content,
+    text = (
+        f"✓ Fixed: moved from {old_category} → {new_category}\n"
+        f"Entry: \"{extracted_name}\""
     )
 
-    return response.event_id
+    message = await bot.send_message(
+        chat_id=chat_id,
+        text=text,
+        reply_to_message_id=reply_to_message_id,
+    )
+
+    return message.message_id
 
 
 async def send_error(
-    client: AsyncClient,
-    room_id: str,
-    reply_to_event_id: str,
+    bot: Bot,
+    chat_id: int,
+    reply_to_message_id: int,
     message: str,
-) -> str:
+) -> int:
     """Send an error message."""
 
-    content = {
-        "msgtype": "m.text",
-        "body": f"⚠️ {message}",
-        "m.relates_to": {"m.in_reply_to": {"event_id": reply_to_event_id}},
-    }
-
-    response = await client.room_send(
-        room_id=room_id,
-        message_type="m.room.message",
-        content=content,
+    msg = await bot.send_message(
+        chat_id=chat_id,
+        text=f"⚠️ {message}",
+        reply_to_message_id=reply_to_message_id,
     )
 
-    return response.event_id
+    return msg.message_id
 
 
 async def send_message(
-    client: AsyncClient,
-    room_id: str,
-    body: str,
-    reply_to_event_id: Optional[str] = None,
-) -> str:
+    bot: Bot,
+    chat_id: int,
+    text: str,
+    reply_to_message_id: Optional[int] = None,
+) -> int:
     """Send a generic message, optionally as a reply."""
 
     import logging
     logger = logging.getLogger(__name__)
-    logger.info(f"send_message: Sending message of length {len(body)} chars")
-    logger.info(f"send_message: First 200 chars: {body[:200]}")
-    logger.info(f"send_message: Last 200 chars: {body[-200:]}")
+    logger.info(f"send_message: Sending message of length {len(text)} chars")
+    logger.info(f"send_message: First 200 chars: {text[:200]}")
+    logger.info(f"send_message: Last 200 chars: {text[-200:]}")
 
-    content = {
-        "msgtype": "m.text",
-        "body": body,
-    }
-
-    if reply_to_event_id:
-        content["m.relates_to"] = {"m.in_reply_to": {"event_id": reply_to_event_id}}
-
-    response = await client.room_send(
-        room_id=room_id,
-        message_type="m.room.message",
-        content=content,
+    message = await bot.send_message(
+        chat_id=chat_id,
+        text=text,
+        reply_to_message_id=reply_to_message_id,
     )
 
-    logger.info(f"send_message: Message sent successfully, event_id={response.event_id}")
+    logger.info(f"send_message: Message sent successfully, message_id={message.message_id}")
 
-    return response.event_id
+    return message.message_id

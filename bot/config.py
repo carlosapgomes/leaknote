@@ -9,11 +9,10 @@ load_dotenv()
 class Config:
     """Application configuration."""
 
-    # Matrix
-    MATRIX_HOMESERVER = os.getenv("MATRIX_HOMESERVER", "http://dendrite:8008")
-    MATRIX_USER_ID = os.getenv("MATRIX_USER_ID")
-    MATRIX_PASSWORD = os.getenv("MATRIX_PASSWORD")
-    MATRIX_INBOX_ROOM = os.getenv("MATRIX_INBOX_ROOM")
+    # Telegram
+    TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+    TELEGRAM_OWNER_ID = int(os.getenv("TELEGRAM_OWNER_ID", "0"))
+    TELEGRAM_INBOX_CHAT_ID = int(os.getenv("TELEGRAM_INBOX_CHAT_ID", "0"))
 
     # Database
     DATABASE_URL = os.getenv("DATABASE_URL")
@@ -32,7 +31,6 @@ class Config:
 
     # Settings
     CONFIDENCE_THRESHOLD = float(os.getenv("CONFIDENCE_THRESHOLD", "0.6"))
-    DIGEST_TARGET_USER = os.getenv("DIGEST_TARGET_USER")
 
     # Per-category thresholds (optional override)
     CONFIDENCE_THRESHOLDS = {
@@ -83,14 +81,13 @@ class Config:
     def validate(cls) -> list[str]:
         """Validate required configuration. Returns list of missing vars."""
         required = [
-            ("MATRIX_USER_ID", cls.MATRIX_USER_ID),
-            ("MATRIX_PASSWORD", cls.MATRIX_PASSWORD),
-            ("MATRIX_INBOX_ROOM", cls.MATRIX_INBOX_ROOM),
+            ("TELEGRAM_BOT_TOKEN", cls.TELEGRAM_BOT_TOKEN),
+            ("TELEGRAM_OWNER_ID", cls.TELEGRAM_OWNER_ID),
+            # TELEGRAM_INBOX_CHAT_ID is optional - can use DMs instead
             ("DATABASE_URL", cls.DATABASE_URL),
             ("CLASSIFY_API_URL", cls.CLASSIFY_API_URL),
             ("CLASSIFY_API_KEY", cls.CLASSIFY_API_KEY),
             ("SUMMARY_API_URL", cls.SUMMARY_API_URL),
             ("SUMMARY_API_KEY", cls.SUMMARY_API_KEY),
-            ("DIGEST_TARGET_USER", cls.DIGEST_TARGET_USER),
         ]
         return [name for name, value in required if not value]

@@ -4,8 +4,8 @@ import logging
 from typing import Tuple, Optional
 
 from classifier import classify_thought, parse_reference
-from db import insert_record, insert_inbox_log
-from config import Config
+from bot.db import insert_record, insert_inbox_log
+from bot.config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +35,8 @@ CATEGORY_DISPLAY = {
 
 async def route_message(
     text: str,
-    matrix_event_id: str,
-    matrix_room_id: str,
+    telegram_message_id: str,
+    telegram_chat_id: str,
 ) -> Tuple[Optional[str], Optional[str], Optional[float], str]:
     """
     Route a message to the appropriate table.
@@ -62,8 +62,8 @@ async def route_message(
             record_id=record_id,
             confidence=1.0,  # Prefix = explicit intent = full confidence
             status="filed",
-            matrix_event_id=matrix_event_id,
-            matrix_room_id=matrix_room_id,
+            telegram_message_id=telegram_message_id,
+            telegram_chat_id=telegram_chat_id,
         )
 
         return category, record_id, 1.0, "filed"
@@ -80,8 +80,8 @@ async def route_message(
             record_id=None,
             confidence=None,
             status="needs_review",
-            matrix_event_id=matrix_event_id,
-            matrix_room_id=matrix_room_id,
+            telegram_message_id=telegram_message_id,
+            telegram_chat_id=telegram_chat_id,
         )
         return None, None, None, "needs_review"
 
@@ -107,8 +107,8 @@ async def route_message(
             record_id=None,
             confidence=confidence,
             status="needs_review",
-            matrix_event_id=matrix_event_id,
-            matrix_room_id=matrix_room_id,
+            telegram_message_id=telegram_message_id,
+            telegram_chat_id=telegram_chat_id,
         )
         return category, None, confidence, "needs_review"
 
@@ -122,8 +122,8 @@ async def route_message(
             record_id=None,
             confidence=confidence,
             status="needs_review",
-            matrix_event_id=matrix_event_id,
-            matrix_room_id=matrix_room_id,
+            telegram_message_id=telegram_message_id,
+            telegram_chat_id=telegram_chat_id,
         )
         return None, None, confidence, "needs_review"
 
@@ -135,8 +135,8 @@ async def route_message(
         record_id=record_id,
         confidence=confidence,
         status="filed",
-        matrix_event_id=matrix_event_id,
-        matrix_room_id=matrix_room_id,
+        telegram_message_id=telegram_message_id,
+        telegram_chat_id=telegram_chat_id,
     )
 
     return category, record_id, confidence, "filed"
