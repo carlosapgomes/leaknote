@@ -34,6 +34,7 @@ RETRIEVAL_PROMPT = load_prompt("retrieval")
 COMMAND_PATTERNS = {
     "recall": re.compile(r"^\?recall\s+(.+)$", re.IGNORECASE),
     "search": re.compile(r"^\?search\s+(.+)$", re.IGNORECASE),
+    "semsearch": re.compile(r"^\?semsearch\s+(.+)$", re.IGNORECASE),
     "people": re.compile(r"^\?people\s+(.+)$", re.IGNORECASE),
     "projects": re.compile(
         r"^\?projects(?:\s+(active|waiting|blocked|someday|done))?$", re.IGNORECASE
@@ -247,6 +248,9 @@ async def handle_command(command: str, arg: Optional[str]) -> str:
         results = await search_all(arg)
         return await format_search_results(arg, results, use_llm=True)
 
+    elif command == "semsearch":
+        return await _semantic_search(arg)
+
     elif command == "people":
         results = await search_people(arg)
         return await format_search_results(arg, results, use_llm=True)
@@ -265,3 +269,28 @@ async def handle_command(command: str, arg: Optional[str]) -> str:
         return format_admin_list(admin)
 
     return "❓ Unknown command"
+
+
+async def _semantic_search(query: str) -> str:
+    """Semantic search using Mem0."""
+    from memory.mem0_client import get_memory_client
+
+    memory_client = get_memory_client()
+    memories = await memory_client.search_relevant_context(query)
+
+    if not memories:
+        return f"🔍 No relevant memories found for: {query}"
+
+    lines = [f"🧠 Relevant Memories for: {query}\n"]
+
+    for m in memories:
+        metadata = m.get("metadata", {})
+        category = metadata.get("category", "unknown")
+        note_id = metadata.get("note_id", "N/A")
+        score = m.get("score", 0.0)
+
+        lines.append(f"• {m['memory']}")
+        lines.append(f"  (from {category} [[{note_id}]], relevance: {score:.2f})")
+        lines.append("")
+
+    return "\n".join(lines)
