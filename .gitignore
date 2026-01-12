@@ -11,3 +11,4 @@ htmlcov/
 credentials.json
 store/
 data/
+logs/
