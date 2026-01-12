@@ -1038,7 +1038,7 @@ if __name__ == "__main__":
 
 ---
 
-## Phase 5: Weekly Reflection
+## Phase 5: Weekly Reflection ✅ COMPLETED
 
 ### 5.1 Reflection Script
 
@@ -1284,14 +1284,15 @@ async def test_brain_processing():
 2. `requirements.txt` - Add dependencies ✅
 3. `.env.example` - Add configuration variables ✅
 
-### Files Pending (Phase 5+)
+### Files Pending (Phase 6+)
 
 4. `bot/router.py` - Integrate memory processing ✅
 5. `bot/commands.py` - Add semantic search command ✅
 6. `bot/main.py` - Add new help command for `?semsearch` ✅
 7. `scripts/bootstrap_memory.py` - Migration script ✅
-8. `scripts/reflection.py` - Weekly reflection (pending)
-9. `tests/unit/test_memory.py` - Memory tests (pending)
+8. `scripts/reflection.py` - Weekly reflection ✅
+9. `cron/reflection.sh` - Cron wrapper script ✅
+10. `tests/unit/test_memory.py` - Memory tests (pending)
 
 ### Environment Variables Added (Phase 1)
 
@@ -1314,7 +1315,7 @@ async def test_brain_processing():
 | 2 | ✅ Complete | Memory Layer Implementation (Mem0, LangGraph, prompts) |
 | 3 | ✅ Complete | Integration with Existing System (router, commands) |
 | 4 | ✅ Complete | Bootstrap and Migration Scripts |
-| 5 | Pending | Weekly Reflection Script |
+| 5 | ✅ Complete | Weekly Reflection Script |
 | 6 | Pending | Testing and Validation |
 
 ---
@@ -1323,11 +1324,11 @@ async def test_brain_processing():
 
 1. ✅ ~~Review and approve this plan~~ - Plan reviewed, Phases 1 & 2 complete
 2. ✅ ~~Create the `memory/` directory structure~~ - Complete
-3. ✅ ~~Implement files in order (Phase 1 → Phase 6)~~ - Phases 1, 2, 3 & 4 complete
+3. ✅ ~~Implement files in order (Phase 1 → Phase 6)~~ - Phases 1, 2, 3, 4 & 5 complete
 4. ✅ ~~Phase 3: Integrate with bot/router.py~~ - Memory enhancement background task added
 5. ✅ ~~Phase 3: Add semantic search command~~ - Updated bot/commands.py
 6. ✅ ~~Phase 4: Create bootstrap script~~ - Migrate existing notes to Mem0
-7. **Phase 5: Create reflection script** - Weekly pattern detection
+7. ✅ ~~Phase 5: Create reflection script~~ - Weekly semantic reflection using LangGraph
 8. **Phase 6: Add unit tests** - Test memory layer functionality
 9. Test with a small subset of notes first
 10. Run bootstrap script on full database
