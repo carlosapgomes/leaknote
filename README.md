@@ -65,11 +65,30 @@ A self-hosted "second brain" that captures your thoughts via Telegram, classifie
 
 The memory layer (Mem0 + Qdrant) requires:
 
-- **OpenAI API key** (or compatible) for embeddings
+- **OpenAI API key** for embeddings (see "Why Two API Keys?" below)
+- **Memory LLM** for orchestration (can use any provider)
 - ~500MB RAM for Qdrant vector database
 - ~1GB disk space for vector storage (grows with your notes)
 
-**Note:** Embeddings are processed by OpenAI's API, not locally. Your machine only stores and searches the vectors.
+**Why Two API Keys?**
+
+The memory layer requires **two separate API keys** for different purposes:
+
+| Key | Purpose | Model | Can Use Alternative Providers? |
+|-----|---------|-------|-------------------------------|
+| `OPENAI_API_KEY` | Embeddings (text → vectors) | `text-embedding-3-small` | **No** - Must use OpenAI |
+| `MEMORY_API_KEY` | LLM orchestration (reasoning) | `gpt-4o` or any model | **Yes** - Any provider |
+
+**Why OpenAI for embeddings?**
+- High-quality embeddings are critical for semantic search accuracy
+- OpenAI's `text-embedding-3-small` provides the best quality/cost ratio (1536 dimensions)
+- Embeddings are cached after generation, so API usage is minimal
+- Your local machine only stores and searches the vectors (~500MB RAM)
+
+**Memory LLM flexibility:**
+- The `MEMORY_API_KEY` can use OpenAI, OpenRouter, Groq, or any OpenAI-compatible provider
+- This allows you to test different models for the orchestration "brain" without breaking embeddings
+- You can even use local models (Ollama) for the LLM while keeping OpenAI for embeddings
 
 ### 1. Create a Telegram Bot
 

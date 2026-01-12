@@ -182,23 +182,66 @@ SUMMARY_API_KEY=ollama
 SUMMARY_MODEL=llama3:70b
 ```
 
-### Memory LLM
+### Memory Layer
+
+The memory layer uses **two separate API keys** for different purposes:
 
 ```bash
-# Memory layer requires OpenAI-compatible API for embeddings
+# Embeddings: Converting text to vectors (REQUIRES OpenAI)
+OPENAI_API_KEY=your-openai-api-key-for-embeddings
+
+# Memory LLM: Orchestration and reasoning (can use any provider)
 MEMORY_PROVIDER=openai
 MEMORY_API_URL=https://api.openai.com/v1
-MEMORY_API_KEY=your-openai-api-key
+MEMORY_API_KEY=your-openai-api-key-for-llm
 MEMORY_MODEL=gpt-4o
 ```
 
-**Important:** The memory layer uses OpenAI's embedding API (via the MEMORY LLM configuration). This is different from the chat/completion API used by CLASSIFY and SUMMARY.
+**Why Two API Keys?**
 
-**Why OpenAI for memory?**
-- High-quality embeddings are critical for semantic search
-- OpenAI's `text-embedding-3-small` is cost-effective and fast
+| Key | Purpose | Model | Provider Options |
+|-----|---------|-------|------------------|
+| `OPENAI_API_KEY` | Embeddings (text → vectors) | `text-embedding-3-small` | **Must use OpenAI** |
+| `MEMORY_API_KEY` | LLM orchestration (LangGraph) | Any model (e.g., `gpt-4o`) | **Any provider** |
+
+**Embeddings (`OPENAI_API_KEY`):**
+- Converts text into vector representations for semantic search
+- OpenAI's `text-embedding-3-small` provides the best quality/cost ratio
+- **Cannot use alternative providers** - the embedding model must be OpenAI's
 - Embeddings are cached, so API calls are minimal after initial setup
-- Alternative: Use any OpenAI-compatible provider that supports embeddings
+- Your local machine only stores and searches vectors (~500MB RAM)
+
+**Memory LLM (`MEMORY_API_KEY`):**
+- Powers the LangGraph orchestration "brain"
+- Handles reasoning, insights extraction, and memory processing
+- **Can use any OpenAI-compatible provider** (OpenRouter, Groq, Ollama, etc.)
+- Allows testing different models without breaking embeddings
+
+**Example: Budget-Friendly Setup**
+
+```bash
+# Embeddings: OpenAI (required)
+OPENAI_API_KEY=sk-your-openai-key
+
+# Memory LLM: OpenRouter (more affordable)
+MEMORY_PROVIDER=openai
+MEMORY_API_URL=https://openrouter.ai/api/v1
+MEMORY_API_KEY=your-openrouter-key
+MEMORY_MODEL=meta-llama/llama-3-70b-instruct
+```
+
+**Example: Local LLM with Cloud Embeddings**
+
+```bash
+# Embeddings: OpenAI (required, cloud-based)
+OPENAI_API_KEY=sk-your-openai-key
+
+# Memory LLM: Ollama (local, free)
+MEMORY_PROVIDER=openai
+MEMORY_API_URL=http://localhost:11434/v1
+MEMORY_API_KEY=ollama
+MEMORY_MODEL=llama3:70b
+```
 
 ## Adding New Providers
 
