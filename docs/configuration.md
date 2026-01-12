@@ -41,16 +41,17 @@ TELEGRAM_OWNER_ID=123456789
 
 ## LLM Configuration
 
-Leaknote uses two LLM clients with different roles:
+Leaknote uses three LLM clients with different roles:
 
 | Client | Purpose | Characteristics |
 |--------|---------|-----------------|
 | **Classify** | Route incoming thoughts | Cheap, fast, runs frequently |
 | **Summary** | Digests, reviews, retrieval | Quality matters, less frequent |
+| **Memory** | Semantic memory operations | High-quality model for embeddings |
 
 ### Provider Types
 
-Both clients support two provider types:
+All three clients support two provider types:
 
 - `openai` - Works with any OpenAI-compatible API
 - `anthropic` - Native Anthropic API
@@ -181,6 +182,24 @@ SUMMARY_API_KEY=ollama
 SUMMARY_MODEL=llama3:70b
 ```
 
+### Memory LLM
+
+```bash
+# Memory layer requires OpenAI-compatible API for embeddings
+MEMORY_PROVIDER=openai
+MEMORY_API_URL=https://api.openai.com/v1
+MEMORY_API_KEY=your-openai-api-key
+MEMORY_MODEL=gpt-4o
+```
+
+**Important:** The memory layer uses OpenAI's embedding API (via the MEMORY LLM configuration). This is different from the chat/completion API used by CLASSIFY and SUMMARY.
+
+**Why OpenAI for memory?**
+- High-quality embeddings are critical for semantic search
+- OpenAI's `text-embedding-3-small` is cost-effective and fast
+- Embeddings are cached, so API calls are minimal after initial setup
+- Alternative: Use any OpenAI-compatible provider that supports embeddings
+
 ## Adding New Providers
 
 The LLM abstraction is in `bot/llm/`:
@@ -251,3 +270,42 @@ ADMIN_PASSWORD=your-secure-admin-password
 The admin UI is accessible on port 8000 and requires HTTP Basic Auth.
 
 **Security note:** The admin UI should only be exposed through Tailscale or a similar secure network. Do not expose it directly to the internet.
+
+## Memory Layer Configuration
+
+The memory layer provides semantic search and smart linking using Mem0, Qdrant, and LangGraph.
+
+### Qdrant (Vector Database)
+
+```bash
+# Qdrant connection URL
+QDRANT_URL=http://qdrant:6333
+
+# For local development (outside Docker), use:
+# QDRANT_URL=http://localhost:6333
+```
+
+### Memory Settings
+
+```bash
+# Collection name in Qdrant
+MEM0_COLLECTION=leaknote_memories
+
+# Number of memories to retrieve for context
+MEMORY_RETRIEVAL_LIMIT=5
+
+# Minimum similarity score for memory matches (0.0-1.0)
+MEMORY_CONFIDENCE_THRESHOLD=0.7
+```
+
+### Tuning Memory Settings
+
+| Setting | Default | Effect |
+|---------|---------|--------|
+| `MEMORY_RETRIEVAL_LIMIT` | 5 | More context = slower, more noise |
+| `MEMORY_CONFIDENCE_THRESHOLD` | 0.7 | Higher = fewer but better matches |
+
+**Recommended adjustments:**
+- Increase `MEMORY_RETRIEVAL_LIMIT` to 7-10 if you want more related notes
+- Decrease `MEMORY_CONFIDENCE_THRESHOLD` to 0.6 if too few links are suggested
+- Increase `MEMORY_CONFIDENCE_THRESHOLD` to 0.8 if too many irrelevant links appear
