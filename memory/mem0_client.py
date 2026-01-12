@@ -30,9 +30,15 @@ class LeaknoteMemory:
         if self._memory is None:
             from mem0.configs.embedders import OpenAIEmbedderConfig
 
+            # Initialize embedder with explicit OpenAI API key for embeddings
+            # Uses text-embedding-3-small by default
+            embedder_kwargs = {}
+            if self.config.OPENAI_API_KEY:
+                embedder_kwargs["api_key"] = self.config.OPENAI_API_KEY
+
             self._memory = Memory(
                 vector_store="qdrant",
-                embedder=OpenAIEmbedderConfig(),
+                embedder=OpenAIEmbedderConfig(**embedder_kwargs),
                 collection_name=self.config.MEM0_COLLECTION,
                 qdrant_url=self.config.QDRANT_URL,
             )

@@ -13,6 +13,9 @@ class MemoryConfig:
     QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
     MEM0_COLLECTION = os.getenv("MEM0_COLLECTION", "leaknote_memories")
 
+    # OpenAI API key for embeddings (text-embedding-3-small)
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
     # Memory LLM (for LangGraph orchestration)
     MEMORY_PROVIDER = os.getenv("MEMORY_PROVIDER", "openai")
     MEMORY_API_URL = os.getenv("MEMORY_API_URL")
@@ -47,6 +50,7 @@ class MemoryConfig:
         """Validate required configuration."""
         required = [
             ("QDRANT_URL", cls.QDRANT_URL),
+            ("OPENAI_API_KEY", cls.OPENAI_API_KEY),  # Required for embeddings
             ("MEMORY_API_URL", cls.MEMORY_API_URL),
             ("MEMORY_API_KEY", cls.MEMORY_API_KEY),
         ]

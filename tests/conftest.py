@@ -21,6 +21,7 @@ os.environ["SUMMARY_MODEL"] = "claude-sonnet-4"
 
 # Memory layer environment variables
 os.environ["QDRANT_URL"] = "http://localhost:6333"
+os.environ["OPENAI_API_KEY"] = "test-openai-key"  # For embeddings
 os.environ["MEMORY_PROVIDER"] = "openai"
 os.environ["MEMORY_API_URL"] = "http://test/v1"
 os.environ["MEMORY_API_KEY"] = "test"
