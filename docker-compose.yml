@@ -1,5 +1,27 @@
 services:
   # ===================
+  # Qdrant Vector Database (Memory Layer)
+  # ===================
+  qdrant:
+    image: qdrant/qdrant:v1.12.0
+    container_name: leaknote-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./data/qdrant:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - leaknote-net
+
+  # ===================
   # PostgreSQL Database
   # ===================
   postgres:
@@ -35,6 +57,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      qdrant:
+        condition: service_healthy
     environment:
       # Python path for imports
       PYTHONPATH: /app
@@ -61,6 +85,16 @@ services:
 
       # Settings
       CONFIDENCE_THRESHOLD: ${CONFIDENCE_THRESHOLD:-0.6}
+
+      # Memory Layer (Mem0 + Qdrant)
+      QDRANT_URL: http://qdrant:6333
+      MEMORY_PROVIDER: ${MEMORY_PROVIDER:-openai}
+      MEMORY_API_URL: ${MEMORY_API_URL:?MEMORY_API_URL required}
+      MEMORY_API_KEY: ${MEMORY_API_KEY:?MEMORY_API_KEY required}
+      MEMORY_MODEL: ${MEMORY_MODEL:-gpt-4o}
+      MEM0_COLLECTION: ${MEM0_COLLECTION:-leaknote_memories}
+      MEMORY_RETRIEVAL_LIMIT: ${MEMORY_RETRIEVAL_LIMIT:-5}
+      MEMORY_CONFIDENCE_THRESHOLD: ${MEMORY_CONFIDENCE_THRESHOLD:-0.7}
     volumes:
       - ./logs:/app/logs
     networks:
@@ -79,6 +113,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      qdrant:
+        condition: service_healthy
     environment:
       # Python path for imports
       PYTHONPATH: /app
@@ -89,6 +125,14 @@ services:
       # Admin UI credentials
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
+
+      # Memory Layer (Mem0 + Qdrant)
+      QDRANT_URL: http://qdrant:6333
+      MEMORY_PROVIDER: ${MEMORY_PROVIDER:-openai}
+      MEMORY_API_URL: ${MEMORY_API_URL:?MEMORY_API_URL required}
+      MEMORY_API_KEY: ${MEMORY_API_KEY:?MEMORY_API_KEY required}
+      MEMORY_MODEL: ${MEMORY_MODEL:-gpt-4o}
+      MEM0_COLLECTION: ${MEM0_COLLECTION:-leaknote_memories}
     ports:
       - "8000:8000"  # Only accessible via Tailscale
     networks:
