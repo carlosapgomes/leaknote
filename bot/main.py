@@ -41,6 +41,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Reduce verbosity of external libraries
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("telegram").setLevel(logging.WARNING)
+logging.getLogger("telegram.ext").setLevel(logging.WARNING)
+
 
 class LeaknoteBot:
     """Telegram bot for Leaknote."""
@@ -56,6 +61,7 @@ class LeaknoteBot:
             "Available commands:\n"
             "• ?recall <query> - Search decisions, howtos, snippets\n"
             "• ?search <query> - Search all categories\n"
+            "• ?semsearch <query> - Semantic search using memory layer\n"
             "• ?people <query> - Search people\n"
             "• ?projects [status] - List projects\n"
             "• ?ideas - List recent ideas\n"

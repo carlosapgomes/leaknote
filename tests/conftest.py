@@ -19,6 +19,17 @@ os.environ["SUMMARY_API_URL"] = "http://test/v1"
 os.environ["SUMMARY_API_KEY"] = "test"
 os.environ["SUMMARY_MODEL"] = "claude-sonnet-4"
 
+# Memory layer environment variables
+os.environ["QDRANT_URL"] = "http://localhost:6333"
+os.environ["OPENAI_API_KEY"] = "test-openai-key"  # For embeddings
+os.environ["MEMORY_PROVIDER"] = "openai"
+os.environ["MEMORY_API_URL"] = "http://test/v1"
+os.environ["MEMORY_API_KEY"] = "test"
+os.environ["MEMORY_MODEL"] = "gpt-4o"
+os.environ["MEM0_COLLECTION"] = "test_leaknote_memories"
+os.environ["MEMORY_RETRIEVAL_LIMIT"] = "5"
+os.environ["MEMORY_CONFIDENCE_THRESHOLD"] = "0.7"
+
 
 @pytest.fixture
 def mock_llm_client():
@@ -149,3 +160,126 @@ def sample_telegram_dm():
     update.message.text = "decision: This is a test decision"
     update.message.reply_to_message = None
     return update
+
+
+@pytest.fixture
+def mock_mem0_client():
+    """Mock Mem0 Memory client for testing."""
+    memory = MagicMock()
+
+    # Mock add method to return a memory ID
+    memory.add = MagicMock(return_value="mem-12345")
+
+    # Mock search method to return relevant memories
+    memory.search = MagicMock(return_value=[
+        {
+            "id": "mem-001",
+            "memory": "Test memory about Rust programming",
+            "metadata": {
+                "note_id": "note-123",
+                "category": "ideas",
+                "created_at": "2026-01-10T10:00:00",
+            },
+            "score": 0.85,
+        },
+        {
+            "id": "mem-002",
+            "memory": "Related memory about async programming",
+            "metadata": {
+                "note_id": "note-456",
+                "category": "ideas",
+                "created_at": "2026-01-09T10:00:00",
+            },
+            "score": 0.72,
+        },
+    ])
+
+    # Mock get_all method
+    memory.get_all = MagicMock(return_value=[
+        {
+            "id": "mem-001",
+            "memory": "Test memory about Rust programming",
+            "metadata": {
+                "note_id": "note-123",
+                "category": "ideas",
+                "created_at": "2026-01-10T10:00:00",
+            },
+        },
+        {
+            "id": "mem-002",
+            "memory": "Related memory about async programming",
+            "metadata": {
+                "note_id": "note-456",
+                "category": "ideas",
+                "created_at": "2026-01-09T10:00:00",
+            },
+        },
+    ])
+
+    # Mock delete method
+    memory.delete = MagicMock(return_value=True)
+
+    return memory
+
+
+@pytest.fixture
+def sample_memory_result():
+    """Sample memory search result for testing."""
+    return [
+        {
+            "memory": "User is researching Rust memory management",
+            "metadata": {
+                "note_id": "note-123",
+                "category": "ideas",
+                "created_at": "2026-01-10T10:00:00",
+            },
+            "score": 0.85,
+        },
+        {
+            "memory": "LangGraph is used for agent orchestration",
+            "metadata": {
+                "note_id": "note-456",
+                "category": "projects",
+                "created_at": "2026-01-09T10:00:00",
+            },
+            "score": 0.72,
+        },
+    ]
+
+
+@pytest.fixture
+def sample_related_notes():
+    """Sample related notes result for testing."""
+    return [
+        {
+            "note_id": "note-123",
+            "category": "ideas",
+            "memory": "User is researching Rust memory management",
+            "score": 0.85,
+        },
+        {
+            "note_id": "note-456",
+            "category": "projects",
+            "memory": "LangGraph is used for agent orchestration",
+            "score": 0.72,
+        },
+    ]
+
+
+@pytest.fixture
+def sample_brain_state():
+    """Sample BrainState for testing."""
+    return {
+        "input_note": "Test note about LangGraph integration",
+        "category": "ideas",
+        "note_id": "note-789",
+        "extracted_fields": {
+            "title": "LangGraph Integration",
+            "one_liner": "Integrate LangGraph for memory processing",
+        },
+        "relevant_memories": [],
+        "related_notes": [],
+        "suggested_links": [],
+        "enhanced_note": None,
+        "metadata": {"processed_at": "2026-01-10T10:00:00"},
+    }

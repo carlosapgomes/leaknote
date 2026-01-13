@@ -7,3 +7,10 @@ uvicorn[standard]>=0.24.0
 jinja2>=3.1.2
 python-multipart>=0.0.6
 markdown>=3.5.0
+
+# Long-term memory dependencies
+mem0ai>=0.1.0
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-openai>=0.2.0
+qdrant-client>=1.12.0

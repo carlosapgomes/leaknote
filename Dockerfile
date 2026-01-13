@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY --chown=leaknote:leaknote bot/ ./bot/
 COPY --chown=leaknote:leaknote leaknote/ ./leaknote/
+COPY --chown=leaknote:leaknote memory/ ./memory/
 COPY --chown=leaknote:leaknote scripts/ ./scripts/
 COPY --chown=leaknote:leaknote prompts/ ./prompts/
 COPY --chown=leaknote:leaknote schema.sql .

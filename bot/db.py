@@ -100,6 +100,17 @@ async def get_record(table: str, record_id: str) -> Optional[Dict[str, Any]]:
         return dict(row) if row else None
 
 
+async def record_exists(table: str, record_id: str) -> bool:
+    """Check if a record exists by ID."""
+    pool = await get_pool()
+
+    async with pool.acquire() as conn:
+        result = await conn.fetchval(
+            f"SELECT 1 FROM {table} WHERE id = $1", record_id
+        )
+        return result is not None
+
+
 # =============================================================================
 # Inbox Log Operations
 # =============================================================================

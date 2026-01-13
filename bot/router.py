@@ -1,5 +1,6 @@
 """Message routing logic."""
 
+import asyncio
 import logging
 from typing import Tuple, Optional
 
@@ -64,6 +65,16 @@ async def route_message(
             status="filed",
             telegram_message_id=telegram_message_id,
             telegram_chat_id=telegram_chat_id,
+        )
+
+        # Enhance with memory layer (run in background)
+        asyncio.create_task(
+            _enhance_with_memory(
+                text=text,
+                category=category,
+                record_id=record_id,
+                extracted=extracted,
+            )
         )
 
         return category, record_id, 1.0, "filed"
@@ -139,4 +150,36 @@ async def route_message(
         telegram_chat_id=telegram_chat_id,
     )
 
+    # Enhance with memory layer (run in background)
+    asyncio.create_task(
+        _enhance_with_memory(
+            text=text,
+            category=category,
+            record_id=record_id,
+            extracted=extracted,
+        )
+    )
+
     return category, record_id, confidence, "filed"
+
+
+async def _enhance_with_memory(
+    text: str,
+    category: str,
+    record_id: str,
+    extracted: dict,
+):
+    """Background task to add memory layer processing."""
+    try:
+        from memory.graph import get_brain
+
+        brain = get_brain()
+        await brain.process_note(
+            input_note=text,
+            category=category,
+            note_id=record_id,
+            extracted_fields=extracted,
+        )
+        logger.info(f"Memory enhancement completed for note {record_id}")
+    except Exception as e:
+        logger.error(f"Memory enhancement failed for note {record_id}: {e}")

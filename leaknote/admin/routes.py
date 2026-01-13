@@ -1,5 +1,6 @@
 """Admin UI routes for the Leaknote admin interface."""
 
+import logging
 from datetime import datetime, date
 from typing import Optional
 from fastapi import APIRouter, Depends, Request, Form, HTTPException, status
@@ -9,6 +10,9 @@ from markdown import markdown
 import asyncpg
 
 from bot.db import get_pool, insert_record, update_record, delete_record, get_record
+from memory.mem0_client import get_memory_client
+
+logger = logging.getLogger(__name__)
 from bot.queries import (
     get_inbox_stats,
     get_active_projects,
@@ -281,16 +285,69 @@ async def record_view(
 # =============================================================================
 
 
+@router.get("/table/{table_name}/{id}/delete", response_class=HTMLResponse)
+async def record_delete_confirm(
+    table_name: str,
+    id: str,
+    request: Request,
+    pool: asyncpg.Pool = Depends(get_db_pool),
+):
+    """Show confirmation page before deleting a record with memory count."""
+    config = get_table_config(table_name)
+    record = await get_record(table_name, id)
+
+    if not record:
+        raise HTTPException(status_code=404, detail="Record not found")
+
+    # Count associated memories
+    memory_count = 0
+    try:
+        memory_client = get_memory_client()
+        all_memories = await memory_client.get_all_memories()
+        for mem in all_memories:
+            if mem.get("metadata", {}).get("note_id") == id:
+                memory_count += 1
+    except Exception as e:
+        logger.warning(f"Could not fetch memory count for {table_name}/{id}: {e}")
+
+    return templates.TemplateResponse(
+        "confirm_delete.html",
+        {
+            "request": request,
+            "table_name": table_name,
+            "config": config,
+            "record": record,
+            "record_id": id,
+            "memory_count": memory_count,
+        },
+    )
+
+
 @router.post("/table/{table_name}/{id}/delete")
 async def record_delete(
     table_name: str,
     id: str,
+    request: Request,
     pool: asyncpg.Pool = Depends(get_db_pool),
 ):
-    """Delete a record."""
+    """Delete a record, optionally with its associated memories."""
+    form_data = await request.form()
+    delete_memories = form_data.get("delete_memories") == "1"
+
+    # Delete memories if requested
+    if delete_memories:
+        try:
+            memory_client = get_memory_client()
+            await memory_client.delete_note_memories(id)
+        except Exception as e:
+            logger.error(f"Failed to delete memories for {table_name}/{id}: {e}")
+
+    # Always delete from PostgreSQL
     success = await delete_record(table_name, id)
+
     if success:
-        return RedirectResponse(f"/table/{table_name}?msg=deleted", status_code=303)
+        msg = "deleted_with_memories" if delete_memories else "deleted"
+        return RedirectResponse(f"/table/{table_name}?msg={msg}", status_code=303)
     else:
         raise HTTPException(status_code=404, detail="Record not found")
 

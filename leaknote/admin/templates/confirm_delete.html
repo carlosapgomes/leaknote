@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Record - {{ config.display_name }}{% endblock %}
+
+{% block content %}
+<div class="delete-confirm">
+    <h1>Delete Record</h1>
+
+    <div class="warning-box">
+        <h2>⚠️ Warning</h2>
+        <p>This action <strong>cannot be undone</strong>. The record will be permanently deleted from the database.</p>
+    </div>
+
+    <div class="record-preview">
+        <h2>Record to Delete</h2>
+        <table class="data-table">
+            {% for key, value in record.items() %}
+            <tr>
+                <th>{{ key }}</th>
+                <td>{{ value or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    {% if memory_count > 0 %}
+    <div class="memory-info">
+        <h2>Associated Memories</h2>
+        <p>This record has <strong>{{ memory_count }}</strong> associated memories in Qdrant vector store.</p>
+
+        <form method="post" class="delete-form">
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="delete_memories" value="1" checked>
+                    <strong>Also delete {{ memory_count }} associated memories from Qdrant</strong>
+                </label>
+                <small>Uncheck this box if you want to keep the memories (creates orphaned data).</small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Delete Record and Memories</button>
+                <a href="/table/{{ table_name }}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+    {% else %}
+    <div class="no-memories">
+        <p>✓ No associated memories found in Qdrant.</p>
+        <form method="post" class="delete-form">
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Delete Record</button>
+                <a href="/table/{{ table_name }}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
