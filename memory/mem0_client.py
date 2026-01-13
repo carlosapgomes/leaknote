@@ -28,20 +28,37 @@ class LeaknoteMemory:
     def memory(self) -> Memory:
         """Lazy initialization of Mem0 client."""
         if self._memory is None:
-            from mem0.configs.embedders import OpenAIEmbedderConfig
-
             # Initialize embedder with explicit OpenAI API key for embeddings
             # Uses text-embedding-3-small by default
-            embedder_kwargs = {}
+            embedder_config = {}
             if self.config.OPENAI_API_KEY:
-                embedder_kwargs["api_key"] = self.config.OPENAI_API_KEY
+                embedder_config["api_key"] = self.config.OPENAI_API_KEY
+                embedder_config["model"] = "text-embedding-3-small"
 
-            self._memory = Memory(
-                vector_store="qdrant",
-                embedder=OpenAIEmbedderConfig(**embedder_kwargs),
-                collection_name=self.config.MEM0_COLLECTION,
-                qdrant_url=self.config.QDRANT_URL,
-            )
+            # Configure Qdrant vector store
+            # Parse URL to extract host and port for local Qdrant
+            from urllib.parse import urlparse
+            parsed = urlparse(self.config.QDRANT_URL)
+
+            qdrant_config = {
+                "host": parsed.hostname or "localhost",
+                "port": parsed.port or 6333,
+                "collection_name": self.config.MEM0_COLLECTION,
+            }
+
+            # Mem0 expects a plain dict for config
+            config = {
+                "vector_store": {
+                    "provider": "qdrant",
+                    "config": qdrant_config,
+                },
+                "embedder": {
+                    "provider": "openai",
+                    "config": embedder_config,
+                },
+            }
+
+            self._memory = Memory.from_config(config)
             logger.info(f"Mem0 initialized with Qdrant at {self.config.QDRANT_URL}")
         return self._memory
 
@@ -108,22 +125,36 @@ class LeaknoteMemory:
         try:
             limit = limit or self.config.MEMORY_RETRIEVAL_LIMIT
 
-            results = self.memory.search(
+            result = self.memory.search(
                 query=query,
                 user_id=self.config.MEM0_USER_ID,
                 limit=limit,
             )
 
+            # mem0 returns {"results": [...]} format
+            if isinstance(result, dict):
+                results = result.get("results", [])
+            elif isinstance(result, list):
+                results = result
+            else:
+                logger.error(f"Unexpected search result type: {type(result)}")
+                return []
+
+            logger.info(f"Found {len(results)} raw memories for query '{query}'")
+
             # Format results
             formatted = []
             for r in results:
-                formatted.append({
-                    "memory": r.get("memory", ""),
-                    "metadata": r.get("metadata", {}),
-                    "score": r.get("score", 0.0),
-                })
+                if isinstance(r, dict):
+                    formatted.append({
+                        "memory": r.get("memory", ""),
+                        "metadata": r.get("metadata", {}),
+                        "score": r.get("score", 0.0),
+                    })
+                else:
+                    logger.warning(f"Unexpected result item type: {type(r)}")
 
-            logger.info(f"Found {len(formatted)} relevant memories for query")
+            logger.info(f"Returning {len(formatted)} formatted memories")
             return formatted
 
         except Exception as e:
@@ -182,8 +213,16 @@ class LeaknoteMemory:
             List of all memories
         """
         try:
-            # Mem0 doesn't have a direct "get all" - we need to use get_all
-            results = self.memory.get_all(user_id=self.config.MEM0_USER_ID)
+            # mem0 returns {"results": [...]}
+            result = self.memory.get_all(user_id=self.config.MEM0_USER_ID)
+
+            if isinstance(result, dict):
+                results = result.get("results", [])
+            elif isinstance(result, list):
+                results = result
+            else:
+                logger.error(f"Unexpected get_all result type: {type(result)}")
+                return []
 
             if category:
                 results = [
@@ -209,7 +248,16 @@ class LeaknoteMemory:
         """
         try:
             # Get all memories for this note
-            all_memories = self.memory.get_all(user_id=self.config.MEM0_USER_ID)
+            result = self.memory.get_all(user_id=self.config.MEM0_USER_ID)
+
+            # mem0 returns {"results": [...]}
+            if isinstance(result, dict):
+                all_memories = result.get("results", [])
+            elif isinstance(result, list):
+                all_memories = result
+            else:
+                logger.error(f"Unexpected get_all result type: {type(result)}")
+                return False
 
             # Filter and delete
             for mem in all_memories:

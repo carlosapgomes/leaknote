@@ -16,6 +16,7 @@
         {% if request.query_params.msg == "created" %}Record created successfully.
         {% elif request.query_params.msg == "updated" %}Record updated successfully.
         {% elif request.query_params.msg == "deleted" %}Record deleted successfully.
+        {% elif request.query_params.msg == "deleted_with_memories" %}Record and associated memories deleted successfully.
         {% elif request.query_params.msg.startswith("deleted_") %}Deleted {{ request.query_params.msg.split('_')[1] }} records.
         {% else %}{{ request.query_params.msg }}
         {% endif %}
@@ -60,10 +61,7 @@
                         {% if config.is_markdown %}
                         <a href="/table/{{ table_name }}/{{ record['id'] }}/view" class="btn btn-sm">View</a>
                         {% endif %}
-                        <form method="post" action="/table/{{ table_name }}/{{ record['id'] }}/delete" class="inline-form"
-                              onsubmit="return confirm('Are you sure?');">
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
+                        <a href="/table/{{ table_name }}/{{ record['id'] }}/delete" class="btn btn-sm btn-danger">Delete</a>
                     </td>
                 </tr>
                 {% endfor %}

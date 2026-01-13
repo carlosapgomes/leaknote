@@ -41,6 +41,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Reduce verbosity of external libraries
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("telegram").setLevel(logging.WARNING)
+logging.getLogger("telegram.ext").setLevel(logging.WARNING)
+
 
 class LeaknoteBot:
     """Telegram bot for Leaknote."""

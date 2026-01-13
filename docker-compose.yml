@@ -3,7 +3,7 @@ services:
   # Qdrant Vector Database (Memory Layer)
   # ===================
   qdrant:
-    image: qdrant/qdrant:v1.12.0
+    image: qdrant/qdrant:v1.16.2
     container_name: leaknote-qdrant
     restart: unless-stopped
     ports:
@@ -13,11 +13,6 @@ services:
       - ./data/qdrant:/qdrant/storage
     environment:
       QDRANT__SERVICE__GRPC_PORT: 6334
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - leaknote-net
 
@@ -58,7 +53,7 @@ services:
       postgres:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
+        condition: service_started
     environment:
       # Python path for imports
       PYTHONPATH: /app
@@ -88,6 +83,7 @@ services:
 
       # Memory Layer (Mem0 + Qdrant)
       QDRANT_URL: http://qdrant:6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY required}
       MEMORY_PROVIDER: ${MEMORY_PROVIDER:-openai}
       MEMORY_API_URL: ${MEMORY_API_URL:?MEMORY_API_URL required}
       MEMORY_API_KEY: ${MEMORY_API_KEY:?MEMORY_API_KEY required}
@@ -114,7 +110,7 @@ services:
       postgres:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
+        condition: service_started
     environment:
       # Python path for imports
       PYTHONPATH: /app
@@ -128,6 +124,7 @@ services:
 
       # Memory Layer (Mem0 + Qdrant)
       QDRANT_URL: http://qdrant:6333
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY required}
       MEMORY_PROVIDER: ${MEMORY_PROVIDER:-openai}
       MEMORY_API_URL: ${MEMORY_API_URL:?MEMORY_API_URL required}
       MEMORY_API_KEY: ${MEMORY_API_KEY:?MEMORY_API_KEY required}
